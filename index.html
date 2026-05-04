@@ -1079,31 +1079,29 @@ function blobParaFile(blob,nome){
 }
 
 function verificarNFDuplicada(numeroNF, token){
-  // Normaliza o número da NF removendo traços e espaços para comparação
   function normalizarNF(nf){
     return String(nf).replace(/[-\s]/g,'').trim().toLowerCase();
   }
   var nfNorm = normalizarNF(numeroNF);
 
-  // Busca com o valor exato primeiro
-  var query = '{ searchCards(pipeId: "302699293", fieldId: "n_mero_da_nota_fiscal", fieldValue: "' + numeroNF + '") { edges { node { id title current_phase { name } fields { name value } } } } }';
+  // Usa pipe_cards com filtro por campo de NF
+  var query = '{ pipe(id: "302699293") { cards(first: 30, filter: {field_id: "n_mero_da_nota_fiscal", field_value: "' + numeroNF + '"}) { edges { node { id title current_phase { name } fields { name value } } } } } }';
   return fetch('https://api.pipefy.com/graphql',{
     method:'POST',
     headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
     body:JSON.stringify({query:query})
   }).then(function(r){return r.json();}).then(function(data){
-    var edges = data&&data.data&&data.data.searchCards&&data.data.searchCards.edges||[];
-    // Filtrar cards ativos (não recusados) onde a NF bate (comparação flexível)
+    var edges = data&&data.data&&data.data.pipe&&data.data.pipe.cards&&data.data.pipe.cards.edges||[];
+    console.log('[NF Check] Cards encontrados:', edges.length, JSON.stringify(edges));
     var cardsAtivos = edges.filter(function(e){
       var fase = e.node&&e.node.current_phase&&e.node.current_phase.name||'';
       if(fase.toLowerCase().indexOf('recus') !== -1) return false;
-      // Verificar se algum field de NF bate com o número informado
       var fields = e.node&&e.node.fields||[];
       var nfField = fields.find(function(f){ return f.name&&f.name.toLowerCase().indexOf('nota fiscal') !== -1; });
       if(nfField && nfField.value){
         return normalizarNF(nfField.value) === nfNorm;
       }
-      return true; // se não achou o field, considera como duplicata por segurança
+      return true;
     });
     return cardsAtivos;
   });
