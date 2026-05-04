@@ -1079,58 +1079,11 @@ function blobParaFile(blob,nome){
 }
 
 function verificarNFDuplicada(numeroNF, token){
-  function normalizarNF(nf){
-    return String(nf).replace(/[-\s]/g,'').trim().toLowerCase();
-  }
-  var nfNorm = normalizarNF(numeroNF);
-
-  // Usa pipe_cards com filtro por campo de NF
-  var query = '{ pipe(id: "302699293") { cards(first: 30, filter: {field_id: "n_mero_da_nota_fiscal", field_value: "' + numeroNF + '"}) { edges { node { id title current_phase { name } fields { name value } } } } } }';
-  return fetch('https://api.pipefy.com/graphql',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},
-    body:JSON.stringify({query:query})
-  }).then(function(r){return r.json();}).then(function(data){
-    var edges = data&&data.data&&data.data.pipe&&data.data.pipe.cards&&data.data.pipe.cards.edges||[];
-    console.log('[NF Check] Cards encontrados:', edges.length, JSON.stringify(edges));
-    var cardsAtivos = edges.filter(function(e){
-      var fase = e.node&&e.node.current_phase&&e.node.current_phase.name||'';
-      if(fase.toLowerCase().indexOf('recus') !== -1) return false;
-      var fields = e.node&&e.node.fields||[];
-      var nfField = fields.find(function(f){ return f.name&&f.name.toLowerCase().indexOf('nota fiscal') !== -1; });
-      if(nfField && nfField.value){
-        return normalizarNF(nfField.value) === nfNorm;
-      }
-      return true;
-    });
-    return cardsAtivos;
-  });
+  // A API do Pipefy não suporta busca por campo neste plano
+  // O bloqueio real é feito pelo próprio Pipefy via "Value must be unique"
+  // Esta função resolve imediatamente sem bloquear
+  return Promise.resolve([]);
 }
-
-function submitForm(){
-  var token=document.getElementById('pipefy_token').value.trim();
-  if(!token){showToast('Configure o token do Pipefy!','error');return;}
-  var boletoFile=document.getElementById('boleto_file').files[0];
-  if(!boletoFile){showToast('Anexe o boleto antes de enviar!','error');return;}
-  var nfFile=document.getElementById('nf_file').files[0];
-  if(!nfFile){showToast('Anexe a nota fiscal antes de enviar!','error');return;}
-  var btn=document.getElementById('btn_submit');
-  var numeroNF=document.getElementById('n_mero_da_nota_fiscal').value.trim();
-  btn.disabled=true;
-  setProgress(5,'Verificando nota fiscal...');
-  verificarNFDuplicada(numeroNF, token).then(function(cardsAtivos){
-    if(cardsAtivos.length>0){
-      var fase=cardsAtivos[0].node.current_phase.name;
-      btn.disabled=false;
-      document.getElementById('progress_bar').classList.remove('show');
-      showToast('❌ NF '+numeroNF+' já existe no Pipefy (fase: '+fase+'). Verifique antes de continuar.','error');
-      return;
-    }
-    executarSubmit(token, btn, boletoFile, nfFile);
-  }).catch(function(){
-    // Se a verificação falhar, continua normalmente
-    executarSubmit(token, btn, boletoFile, nfFile);
-  });
 }
 
 function executarSubmit(token, btn, boletoFile, nfFile){
@@ -1186,7 +1139,15 @@ function executarSubmit(token, btn, boletoFile, nfFile){
     setProgress(100,'✅ Card criado com sucesso!');
     showToast('✅ Card #'+card.id+' criado no Pipefy!','success');
     setTimeout(function(){if(card.url)window.open(card.url,'_blank');},1000);
-  }).catch(function(e){showToast('❌ Erro: '+e.message,'error');console.error(e);})
+  }).catch(function(e){
+    var msg = e.message||'';
+    if(msg.indexOf('Value must be unique') !== -1 || msg.indexOf('must be unique') !== -1){
+      showToast('⚠️ Esta Nota Fiscal já existe no Pipefy em uma fase ativa. Verifique antes de continuar.','error');
+    } else {
+      showToast('❌ Erro: '+msg,'error');
+    }
+    console.error(e);
+  })
   .finally(function(){btn.disabled=false;});
 }
 </script>
