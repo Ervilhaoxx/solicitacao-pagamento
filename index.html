@@ -1078,6 +1078,32 @@ function blobParaFile(blob,nome){
   return new File([blob],nome,{type:blob.type});
 }
 
+
+function submitForm(){
+  var token=document.getElementById('pipefy_token').value.trim();
+  if(!token){showToast('Configure o token do Pipefy!','error');return;}
+  var boletoFile=document.getElementById('boleto_file').files[0];
+  if(!boletoFile){showToast('Anexe o boleto antes de enviar!','error');return;}
+  var nfFile=document.getElementById('nf_file').files[0];
+  if(!nfFile){showToast('Anexe a nota fiscal antes de enviar!','error');return;}
+  var btn=document.getElementById('btn_submit');
+  var numeroNF=document.getElementById('n_mero_da_nota_fiscal').value.trim();
+  btn.disabled=true;
+  setProgress(5,'Verificando nota fiscal...');
+  verificarNFDuplicada(numeroNF, token).then(function(cardsAtivos){
+    if(cardsAtivos.length>0){
+      var fase=cardsAtivos[0].node.current_phase.name;
+      btn.disabled=false;
+      document.getElementById('progress_bar').classList.remove('show');
+      showToast('⚠️ NF '+numeroNF+' já existe no Pipefy (fase: '+fase+'). Verifique antes de continuar.','error');
+      return;
+    }
+    executarSubmit(token, btn, boletoFile, nfFile);
+  }).catch(function(){
+    executarSubmit(token, btn, boletoFile, nfFile);
+  });
+}
+
 function verificarNFDuplicada(numeroNF, token){
   // A API do Pipefy não suporta busca por campo neste plano
   // O bloqueio real é feito pelo próprio Pipefy via "Value must be unique"
