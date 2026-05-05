@@ -357,6 +357,36 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-heig
     <div class="hint" style="margin-top:8px">💡 Digite valores no formato R$ (ex: 1.234,56). Deixe em branco os departamentos sem rateio.</div>
   </div>
 
+  <div class="card" id="cond_section">
+    <h2>🏢 Condomínio / Estacionamento</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:16px">Se for um lançamento de condomínio ou estacionamento, selecione a sala abaixo para preenchimento automático. Caso contrário, ignore esta seção.</p>
+    <div class="field">
+      <label>Selecionar Sala (opcional)</label>
+      <select id="cond_sala" onchange="preencherCond()">
+        <option value="">-- Não se aplica --</option>
+        <optgroup label="Condomínio">
+          <option value="COND_11">COND. SALA 11 (1º andar)</option>
+          <option value="COND_12">COND. SALA 12 (1º andar)</option>
+          <option value="COND_13">COND. SALA 13 (1º andar)</option>
+          <option value="COND_14">COND. SALA 14 (1º andar)</option>
+          <option value="COND_21">COND. SALA 21 (2º andar)</option>
+          <option value="COND_22">COND. SALA 22 (2º andar)</option>
+        </optgroup>
+        <optgroup label="Estacionamento">
+          <option value="ESTAC_11">ESTAC. SALA 11</option>
+          <option value="ESTAC_12">ESTAC. SALA 12</option>
+          <option value="ESTAC_13">ESTAC. SALA 13</option>
+          <option value="ESTAC_14">ESTAC. SALA 14</option>
+          <option value="ESTAC_21">ESTAC. SALA 21</option>
+          <option value="ESTAC_22">ESTAC. SALA 22</option>
+        </optgroup>
+      </select>
+    </div>
+    <div id="cond_info" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;font-size:12px;color:#166534">
+      <b>✅ Campos preenchidos automaticamente.</b> Anexe uma <b>imagem (print)</b> do boleto e da NF — o PDF protegido por senha não pode ser lido pela IA.
+    </div>
+  </div>
+
   <div class="card">
     <h2>🧾 Nota Fiscal</h2>
     <div class="field">
@@ -390,10 +420,24 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-heig
       </div>
       <div class="field">
         <label>Retenção de Imposto? <span class="req">*</span></label>
-        <select id="a_nota_fiscal_possui_reten_o_de_imposto">
+        <select id="a_nota_fiscal_possui_reten_o_de_imposto" onchange="toggleImpostoFields()">
           <option value="">Selecione...</option><option>Sim</option><option>Não</option>
         </select>
         <div class="extracted" id="ext_nf_ret">✨ Preenchido automaticamente</div>
+      </div>
+    </div>
+    <div id="imposto_fields" style="display:none">
+      <div class="row">
+        <div class="field">
+          <label>Valor Bruto da NF <span class="req">*</span></label>
+          <input type="number" step="0.01" id="valor_bruto_input" placeholder="Ex: 1500.00" />
+          <div class="extracted" id="ext_valor_bruto">✨ Preenchido automaticamente</div>
+        </div>
+        <div class="field">
+          <label>Valor Líquido da NF <span class="req">*</span></label>
+          <input type="number" step="0.01" id="valor_liquido_input" placeholder="Ex: 1350.00" />
+          <div class="extracted" id="ext_valor_liquido">✨ Preenchido automaticamente</div>
+        </div>
       </div>
     </div>
   </div>
@@ -613,6 +657,65 @@ function normalizarCC(cc){
   if(direto) return direto;
   var semAcentoMatch=DEPARTAMENTOS.find(function(d){return removerAcentos(d)===semAcento;});
   return semAcentoMatch||upper;
+}
+
+
+var COND_DATA = {
+  'COND_11': {nome:'ADMINISTRADORA (COND. SALA 11)', nf:'11030', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 11 primeiro andar'},
+  'COND_12': {nome:'ADMINISTRADORA (COND. SALA 12)', nf:'12030', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 12 primeiro andar'},
+  'COND_13': {nome:'ADMINISTRADORA (COND. SALA 13)', nf:'13030', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 13 primeiro andar'},
+  'COND_14': {nome:'ADMINISTRADORA (COND. SALA 14)', nf:'14030', freq:'Trimestral', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 14 primeiro andar'},
+  'COND_21': {nome:'ADMINISTRADORA (COND. SALA 21)', nf:'21049', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 21 segundo andar'},
+  'COND_22': {nome:'ADMINISTRADORA (COND. SALA 22)', nf:'22049', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento condominio sala 22 segundo andar'},
+  'ESTAC_11': {nome:'ADMINISTRADORA (ESTAC. SALA 11)', nf:'11278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa da condominio das vagas de estacionamento sala 11 / 1º andar'},
+  'ESTAC_12': {nome:'ADMINISTRADORA (ESTAC. SALA 12)', nf:'12278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa de condominio das vagas de estacionamento sala 12 / 1º andar'},
+  'ESTAC_13': {nome:'ADMINISTRADORA (ESTAC SALA 13)', nf:'13278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa condominio das vagas de estacionamento sala 13 / 1º andar'},
+  'ESTAC_14': {nome:'ADMINISTRADORA (ESTAC. SALA 14)', nf:'14278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa de condominio das vagas de estacionamento 14 / 1º andar'},
+  'ESTAC_21': {nome:'ADMINISTRADORA (ESTAC. SALA 21)', nf:'21278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa de condominio das vagas de estacionamento 21 / 2º andar'},
+  'ESTAC_22': {nome:'ADMINISTRADORA (ESTAC. SALA 22)', nf:'22278', freq:'Mensal', cat:'Condomínio', desc:'Solicitação de pagamento taxa de condominio das vagas de estacionamento 2º andar'}
+};
+
+function toggleImpostoFields(){
+  var val = document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value;
+  document.getElementById('imposto_fields').style.display = val === 'Sim' ? 'block' : 'none';
+}
+
+function preencherCond(){
+  var sala = document.getElementById('cond_sala').value;
+  if(!sala){
+    document.getElementById('cond_info').style.display='none';
+    return;
+  }
+  var d = COND_DATA[sala];
+  if(!d) return;
+
+  // Preencher fornecedor
+  var forn = todosFornecedores.find(function(f){ return f.nome.toUpperCase().indexOf(d.nome.toUpperCase()) !== -1 || d.nome.toUpperCase().indexOf(f.nome.toUpperCase()) !== -1; });
+  if(forn) selecionarFornecedor(forn.id, forn.nome);
+
+  // Preencher frequência
+  document.getElementById('qual_a_frequ_ncia_de_pagamento_deste_fornecedor').value = d.freq;
+
+  // Preencher categoria
+  document.getElementById('tipo_de_pagamento').value = d.cat;
+
+  // Preencher CC
+  document.getElementById('selecione_o_centro_de_custo').value = 'FACILITIES CORPORATE';
+
+  // Preencher descrição
+  document.getElementById('descreva_sua_solicita_o').value = d.desc;
+
+  // Preencher número da NF
+  document.getElementById('n_mero_da_nota_fiscal').value = d.nf;
+
+  // Preencher tipo
+  document.getElementById('tipo_de_solicita_o_de_solicita_o').value = 'Contas a Pagar';
+
+  // Marcar sem rateio
+  document.getElementById('rateio_entre_uma_ou_mais_categorias').value = 'Não';
+  document.getElementById('rateio_section').style.display = 'none';
+
+  document.getElementById('cond_info').style.display='block';
 }
 
 window.addEventListener('DOMContentLoaded',function(){
@@ -1001,13 +1104,17 @@ function handleNFUpload(){
   document.getElementById('nf_filename').textContent=file.name;
   document.getElementById('nf_analyzing').classList.add('show');
   fileToBase64(file).then(function(b64){
-    return extractWithClaude(b64,file.type,'Analise esta nota fiscal e retorne APENAS um JSON:\n{"numero_nf":"número da NF","data_emissao":"YYYY-MM-DD","valor":0.00,"retencao_imposto":"Sim ou Não"}\nRetorne apenas o JSON.');
+    return extractWithClaude(b64,file.type,'Analise esta nota fiscal e retorne APENAS um JSON:\n{"numero_nf":"número da NF","data_emissao":"YYYY-MM-DD","valor":0.00,"retencao_imposto":"Sim ou Não","valor_bruto":0.00,"valor_liquido":0.00}\nSe não houver retenção, valor_bruto e valor_liquido devem ser iguais ao valor.\nRetorne apenas o JSON.');
   }).then(function(r){
     document.getElementById('nf_analyzing').classList.remove('show');
     if(r){
       if(r.numero_nf){document.getElementById('n_mero_da_nota_fiscal').value=r.numero_nf;document.getElementById('ext_nf_num').classList.add('show');}
       if(r.data_emissao){document.getElementById('data_de_emiss_o_da_nf').value=r.data_emissao;document.getElementById('ext_nf_data').classList.add('show');}
       if(r.valor){document.getElementById('valor_restored').value=r.valor;document.getElementById('ext_nf_valor').classList.add('show');calcTotais();}
+      if(r.retencao_imposto==='Sim'){
+        if(r.valor_bruto){document.getElementById('valor_bruto_input').value=r.valor_bruto;document.getElementById('ext_valor_bruto').classList.add('show');}
+        if(r.valor_liquido){document.getElementById('valor_liquido_input').value=r.valor_liquido;document.getElementById('ext_valor_liquido').classList.add('show');}
+      }
       if(r.retencao_imposto){document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value=r.retencao_imposto;document.getElementById('ext_nf_ret').classList.add('show');}
       document.getElementById('nf_extracted_list').innerHTML='<li>📌 NF: <b>'+(r.numero_nf||'-')+'</b></li><li>📅 Data: <b>'+(r.data_emissao||'-')+'</b></li><li>💰 Valor: <b>'+(r.valor?formatarBRL(r.valor):'-')+'</b></li><li>🧾 Retenção: <b>'+(r.retencao_imposto||'-')+'</b></li>';
       document.getElementById('nf_extracted').classList.add('show');
@@ -1273,8 +1380,9 @@ function executarSubmit(token, btn, boletoFile, nfFile){
           {field_id:'data_de_emiss_o_da_nf',field_value:document.getElementById('data_de_emiss_o_da_nf').value},
           {field_id:'a_nota_fiscal_possui_reten_o_de_imposto',field_value:document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value},
           {field_id:'valor_restored',field_value:valorNF},
-          {field_id:'valor_bruto_da_nota_fiscal',field_value:valorNF},
-          {field_id:'valor_l_quido_da_nf',field_value:valorNF},
+          {field_id:'valor_bruto_da_nota_fiscal',field_value:document.getElementById('valor_bruto_input').value||valorNF},
+          {field_id:'valor_l_quido_da_nf',field_value:document.getElementById('valor_liquido_input').value||valorNF},
+
           {field_id:'anexo_da_nota_fiscal',field_value:nfPath},
           {field_id:'c_digo_de_barras_do_boleto_2',field_value:document.getElementById('c_digo_de_barras_do_boleto_2').value},
           {field_id:'vencimento_do_pagamento',field_value:vencParcela?vencParcela+' 12:00':''},
