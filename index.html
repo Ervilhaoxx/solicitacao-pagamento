@@ -4,32 +4,48 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solicitação de Pagamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
-.header { background: linear-gradient(135deg, #6613D0, #FE8F1C); color: white; padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
-.header-text h1 { font-size: 20px; font-weight: 600; }
-.header-text p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+:root {
+  --bg: #05040f;
+  --surface: #0d0a1e;
+  --card: #130d2a;
+  --border: rgba(124,58,237,0.2);
+  --orange: #FF6B2B;
+  --orange-l: #ff8c57;
+  --purple: #7c3aed;
+  --purple-l: #a855f7;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --green: #22c55e;
+  --red: #ef4444;
+  --font: 'Sora', sans-serif;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+.header { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--text); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+.header-text h1 { font-size: 20px; font-weight: 700; color: var(--text); }
+.header-text p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
-.card { background: white; border-radius: 12px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-.card h2 { font-size: 15px; font-weight: 600; color: #6613D0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f3e8ff; display: flex; align-items: center; gap: 8px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+.card h2 { font-size: 15px; font-weight: 600; color: var(--orange); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
 .field { margin-bottom: 18px; }
-.field label { display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px; }
-.req { color: #e74c3c; margin-left: 2px; }
-.field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; color: #333; transition: border 0.2s; background: #fafafa; }
-.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #6613D0; background: white; }
+.field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.req { color: var(--red); margin-left: 2px; }
+.field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--text); transition: border 0.2s; background: var(--surface); font-family: var(--font); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--orange); background: var(--card); }
 .field textarea { resize: vertical; min-height: 80px; }
 .extracted { font-size: 11px; color: #27ae60; margin-top: 4px; display: none; }
 .extracted.show { display: block; }
-.upload-area { border: 2px dashed #6613D0; border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #faf6ff; position: relative; }
-.upload-area:hover { border-color: #FE8F1C; background: #fff8f0; }
+.upload-area { border: 2px dashed var(--purple); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(124,58,237,0.05); position: relative; }
+.upload-area:hover { border-color: var(--orange); background: rgba(255,107,43,0.05); }
 .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .upload-area .icon { font-size: 28px; }
-.upload-area p { font-size: 13px; color: #666; margin-top: 6px; }
-.upload-area .filename { font-size: 12px; color: #6613D0; font-weight: 600; margin-top: 6px; }
-.analyzing { display: none; align-items: center; gap: 8px; font-size: 13px; color: #6613D0; margin-top: 10px; }
+.upload-area p { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.upload-area .filename { font-size: 12px; color: var(--orange); font-weight: 600; margin-top: 6px; }
+.analyzing { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--orange); margin-top: 10px; }
 .analyzing.show { display: flex; }
-.spinner { width: 16px; height: 16px; border: 2px solid #f3e8ff; border-top-color: #6613D0; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(124,58,237,0.2); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .extracted-data { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-top: 10px; display: none; }
 .extracted-data.show { display: block; }
@@ -37,27 +53,27 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-heig
 .extracted-data ul { list-style: none; }
 .extracted-data ul li { font-size: 12px; color: #166534; padding: 2px 0; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.config-toggle { font-size: 12px; color: #6613D0; cursor: pointer; text-decoration: underline; margin-bottom: 16px; display: inline-block; }
+.config-toggle { font-size: 12px; color: var(--orange); cursor: pointer; text-decoration: underline; margin-bottom: 16px; display: inline-block; }
 .config-panel { display: none; }
 .config-panel.show { display: block; }
-.btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, #6613D0, #FE8F1C); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-submit { width: 100%; padding: 14px; background: var(--orange); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; font-family: var(--font); }
 .btn-submit:hover { opacity: 0.9; }
 .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 .toast { position: fixed; top: 20px; right: 20px; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; color: white; z-index: 999; display: none; max-width: 360px; }
 .toast.success { background: #16a34a; display: block; }
 .toast.error { background: #dc2626; display: block; }
-.toast.info { background: #6613D0; display: block; }
+.toast.info { background: var(--purple); display: block; }
 .progress { display: none; margin-bottom: 12px; }
 .progress.show { display: block; }
-.progress-bar { height: 6px; background: #ede9ff; border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #6613D0, #FE8F1C); border-radius: 3px; transition: width 0.4s; }
-.progress-label { font-size: 12px; color: #6613D0; margin-top: 6px; }
-.hint { font-size: 11px; color: #888; margin-top: 4px; }
-.forn-dropdown { display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1.5px solid #6613D0; border-radius:8px; z-index:100; max-height:220px; overflow-y:auto; box-shadow:0 4px 16px rgba(0,0,0,0.12); }
-.forn-item { padding:10px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid #f0edff; }
-.forn-item:hover { background:#f5f3ff; }
-.rateio-cat-select option { color: #333 !important; background: white !important; }
-.rateio-upload-box { background: linear-gradient(135deg, #f5f3ff, #fff8f0); border: 2px dashed #9333ea; border-radius: 10px; padding: 20px; margin-bottom: 16px; position: relative; text-align: center; }
+.progress-bar { height: 6px; background: rgba(124,58,237,0.2); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--orange)); border-radius: 3px; transition: width 0.4s; }
+.progress-label { font-size: 12px; color: var(--orange); margin-top: 6px; }
+.hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.forn-dropdown { display:none; position:absolute; top:100%; left:0; right:0; background:var(--card); border:1.5px solid var(--border); border-radius:8px; z-index:100; max-height:220px; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.forn-item { padding:10px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--border); color:var(--text); }
+.forn-item:hover { background:rgba(124,58,237,0.1); }
+.rateio-cat-select option { color: var(--text) !important; background: var(--card) !important; }
+.rateio-upload-box { background: rgba(124,58,237,0.05); border: 2px dashed var(--purple); border-radius: 10px; padding: 20px; margin-bottom: 16px; position: relative; text-align: center; }
 .rateio-upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin: 2px; }
 .badge-onfly { background: #dbeafe; color: #1d4ed8; }
@@ -65,25 +81,17 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; min-heig
 .badge-tecnicopias { background: #dcfce7; color: #166534; }
 .aviso-cc { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #92400e; margin-top: 8px; display: none; }
 .aviso-cc.show { display: block; }
-.rateio-input { width:100%; padding:5px 6px; border:1.5px solid #e0d9ff; border-radius:5px; font-size:12px; text-align:right; background:white; color:#333; }
-.rateio-input:focus { outline:none; border-color:#6613D0; background:#faf6ff; }
-.rateio-input.preenchido { background:#f0fdf4; border-color:#86efac; color:#166534; font-weight:600; }
+.rateio-input { width:100%; padding:5px 6px; border:1.5px solid var(--border); border-radius:5px; font-size:12px; text-align:right; background:var(--surface); color:var(--text); font-family:var(--font); }
+.rateio-input:focus { outline:none; border-color:var(--orange); background:var(--card); }
+.rateio-input.preenchido { background:rgba(34,197,94,0.1); border-color:#22c55e; color:#22c55e; font-weight:600; }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div style="display:flex;align-items:center;gap:10px;padding-right:16px;border-right:2px solid rgba(255,255,255,0.3)">
-    <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="35,5 95,5 95,55 35,55" fill="#FE8F1C"/>
-      <rect x="30" y="25" width="45" height="45" fill="#5500bb"/>
-      <path d="M5,5 L28,5 L28,72 L95,72 L95,95 L5,95 Z" fill="white"/>
-      <rect x="68" y="75" width="20" height="18" fill="white"/>
-    </svg>
-    <span style="font-size:20px;font-weight:800;color:white;letter-spacing:-0.5px">logcomex<sup style="font-size:9px;font-weight:400">™</sup></span>
-  </div>
   <div class="header-text">
-    <h1>💳 Solicitação de Pagamento — Contas a Pagar</h1>
+    <div style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:4px">Facilities · Logcomex</div>
+    <h1>Solicitação de Pagamento</h1>
     <p>Preencha os campos abaixo. Anexe a NF e o boleto para preenchimento automático.</p>
   </div>
 </div>
