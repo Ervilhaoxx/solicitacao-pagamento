@@ -8,44 +8,44 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #05040f;
-  --surface: #0d0a1e;
-  --card: #130d2a;
-  --border: rgba(124,58,237,0.2);
+  --bg: #f5f3ff;
+  --surface: #ffffff;
+  --card: #ffffff;
+  --border: rgba(102,19,208,0.12);
   --orange: #FF6B2B;
   --orange-l: #ff8c57;
-  --purple: #7c3aed;
-  --purple-l: #a855f7;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --green: #22c55e;
-  --red: #ef4444;
+  --purple: #6613D0;
+  --purple-l: #9333ea;
+  --text: #1e1b4b;
+  --muted: #6b7280;
+  --green: #16a34a;
+  --red: #dc2626;
   --font: 'Sora', sans-serif;
 }
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
-.header { background: var(--surface); border-bottom: 1px solid var(--border); color: var(--text); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+.header { background: linear-gradient(135deg, #6613D0, #FF6B2B); color: white; padding: 24px 32px; display: flex; align-items: center; gap: 16px; }
 .header-text h1 { font-size: 20px; font-weight: 700; color: var(--text); }
 .header-text p { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .container { max-width: 900px; margin: 32px auto; padding: 0 20px 60px; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(102,19,208,0.06); }
 .card h2 { font-size: 15px; font-weight: 600; color: var(--orange); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
 .field { margin-bottom: 18px; }
 .field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
 .req { color: var(--red); margin-left: 2px; }
-.field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; color: var(--text); transition: border 0.2s; background: var(--surface); font-family: var(--font); }
-.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--orange); background: var(--card); }
+.field input, .field select, .field textarea { width: 100%; padding: 10px 12px; border: 1.5px solid #e5e0f8; border-radius: 8px; font-size: 14px; color: var(--text); transition: border 0.2s; background: #faf8ff; font-family: var(--font); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--purple); background: white; }
 .field textarea { resize: vertical; min-height: 80px; }
 .extracted { font-size: 11px; color: #27ae60; margin-top: 4px; display: none; }
 .extracted.show { display: block; }
-.upload-area { border: 2px dashed var(--purple); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(124,58,237,0.05); position: relative; }
-.upload-area:hover { border-color: var(--orange); background: rgba(255,107,43,0.05); }
+.upload-area { border: 2px dashed var(--purple); border-radius: 10px; padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s; background: #f5f0ff; position: relative; }
+.upload-area:hover { border-color: var(--orange); background: #fff5f0; }
 .upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .upload-area .icon { font-size: 28px; }
 .upload-area p { font-size: 13px; color: var(--muted); margin-top: 6px; }
 .upload-area .filename { font-size: 12px; color: var(--orange); font-weight: 600; margin-top: 6px; }
 .analyzing { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--orange); margin-top: 10px; }
 .analyzing.show { display: flex; }
-.spinner { width: 16px; height: 16px; border: 2px solid rgba(124,58,237,0.2); border-top-color: var(--orange); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.spinner { width: 16px; height: 16px; border: 2px solid #e5e0f8; border-top-color: var(--purple); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .extracted-data { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin-top: 10px; display: none; }
 .extracted-data.show { display: block; }
@@ -65,15 +65,15 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .toast.info { background: var(--purple); display: block; }
 .progress { display: none; margin-bottom: 12px; }
 .progress.show { display: block; }
-.progress-bar { height: 6px; background: rgba(124,58,237,0.2); border-radius: 3px; overflow: hidden; }
+.progress-bar { height: 6px; background: #e5e0f8; border-radius: 3px; overflow: hidden; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--orange)); border-radius: 3px; transition: width 0.4s; }
 .progress-label { font-size: 12px; color: var(--orange); margin-top: 6px; }
 .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
-.forn-dropdown { display:none; position:absolute; top:100%; left:0; right:0; background:var(--card); border:1.5px solid var(--border); border-radius:8px; z-index:100; max-height:220px; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.4); }
-.forn-item { padding:10px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid var(--border); color:var(--text); }
-.forn-item:hover { background:rgba(124,58,237,0.1); }
-.rateio-cat-select option { color: var(--text) !important; background: var(--card) !important; }
-.rateio-upload-box { background: rgba(124,58,237,0.05); border: 2px dashed var(--purple); border-radius: 10px; padding: 20px; margin-bottom: 16px; position: relative; text-align: center; }
+.forn-dropdown { display:none; position:absolute; top:100%; left:0; right:0; background:white; border:1.5px solid #e5e0f8; border-radius:8px; z-index:100; max-height:220px; overflow-y:auto; box-shadow:0 4px 16px rgba(102,19,208,0.12); }
+.forn-item { padding:10px 14px; cursor:pointer; font-size:13px; border-bottom:1px solid #f3efff; color:var(--text); }
+.forn-item:hover { background:#f5f0ff; }
+.rateio-cat-select option { color: var(--text) !important; background: white !important; }
+.rateio-upload-box { background: #f5f0ff; border: 2px dashed var(--purple); border-radius: 10px; padding: 20px; margin-bottom: 16px; position: relative; text-align: center; }
 .rateio-upload-box input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin: 2px; }
 .badge-onfly { background: #dbeafe; color: #1d4ed8; }
@@ -81,8 +81,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .badge-tecnicopias { background: #dcfce7; color: #166534; }
 .aviso-cc { background: #fef3c7; border: 1px solid #fcd34d; border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #92400e; margin-top: 8px; display: none; }
 .aviso-cc.show { display: block; }
-.rateio-input { width:100%; padding:5px 6px; border:1.5px solid var(--border); border-radius:5px; font-size:12px; text-align:right; background:var(--surface); color:var(--text); font-family:var(--font); }
-.rateio-input:focus { outline:none; border-color:var(--orange); background:var(--card); }
+.rateio-input { width:100%; padding:5px 6px; border:1.5px solid #e5e0f8; border-radius:5px; font-size:12px; text-align:right; background:#faf8ff; color:var(--text); font-family:var(--font); }
+.rateio-input:focus { outline:none; border-color:var(--purple); background:white; }
 .rateio-input.preenchido { background:rgba(34,197,94,0.1); border-color:#22c55e; color:#22c55e; font-weight:600; }
 </style>
 </head>
@@ -90,7 +90,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 
 <div class="header">
   <div class="header-text">
-    <div style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:4px">Facilities · Logcomex</div>
+    <div style="font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.8);margin-bottom:4px">Facilities · Logcomex</div>
     <h1>Solicitação de Pagamento</h1>
     <p>Preencha os campos abaixo. Anexe a NF e o boleto para preenchimento automático.</p>
   </div>
