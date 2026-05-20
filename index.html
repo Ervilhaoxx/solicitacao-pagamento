@@ -275,7 +275,6 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
           <option>Gympass</option>
           <option>Auxílio Farmácia</option>
           <option>Multas</option>
-          <option>Bens de pequeno valor</option>
           <option>Doações</option>
           <option>VIAGENS</option>
           <option>ALIMENTAÇÃO EM VIAGENS</option>
@@ -569,7 +568,6 @@ var CATEGORIAS = [
   "Gympass",
   "Auxílio Farmácia",
   "Multas",
-  "Bens de pequeno valor",
   "Doações",
   "VIAGENS",
   "ALIMENTAÇÃO EM VIAGENS",
@@ -1327,6 +1325,16 @@ function submitForm(){
   if(!nfFile){showToast('Anexe a nota fiscal antes de enviar!','error');return;}
   var btn=document.getElementById('btn_submit');
   var numeroNF=document.getElementById('n_mero_da_nota_fiscal').value.trim();
+  var valorParcela=document.getElementById('valor_da_parcela').value.trim();
+  var vencParcela2=document.getElementById('vencimento_da_parcela').value.trim();
+  var codBarras=document.getElementById('c_digo_de_barras_do_boleto_2').value.trim();
+  var valorNFCheck=document.getElementById('valor_restored').value.trim();
+  var dataEmissao=document.getElementById('data_de_emiss_o_da_nf').value.trim();
+  if(!valorParcela){showToast('⚠️ Preencha o Valor da Parcela antes de enviar!','error');return;}
+  if(!vencParcela2){showToast('⚠️ Preencha o Vencimento da Parcela antes de enviar!','error');return;}
+  if(!codBarras){showToast('⚠️ Preencha o Código de Barras do Boleto antes de enviar!','error');return;}
+  if(!valorNFCheck){showToast('⚠️ Preencha o Valor da NF antes de enviar!','error');return;}
+  if(!dataEmissao){showToast('⚠️ Preencha a Data de Emissão da NF antes de enviar!','error');return;}
   btn.disabled=true;
   setProgress(5,'Verificando nota fiscal...');
   verificarNFDuplicada(numeroNF, token).then(function(cardsAtivos){
@@ -1344,15 +1352,25 @@ function submitForm(){
 }
 
 function verificarNFDuplicada(numeroNF, token){
-  // A API do Pipefy não suporta busca por campo neste plano
-  // O bloqueio real é feito pelo próprio Pipefy via "Value must be unique"
-  // Esta função resolve imediatamente sem bloquear
-  return Promise.resolve([]);
+  if(!numeroNF) return Promise.resolve([]);
+  var query='{ cards(pipe_id: "302699293", search: {title: "'+numeroNF+'"}) { edges { node { id title current_phase { name } } } } }';
+  return pipefyQuery(query,{}).then(function(res){
+    var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
+    // Filtra só cards cujo título contenha o número da NF
+    return edges.filter(function(e){
+      return e.node&&e.node.title&&e.node.title.indexOf(numeroNF)!==-1;
+    });
+  }).catch(function(){return [];});
+}
+
+function sanitizarValor(v){
+  var n=parseFloat(String(v).replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'));
+  return isNaN(n)?'':String(n);
 }
 
 function executarSubmit(token, btn, boletoFile, nfFile){
   var vencParcela=document.getElementById('vencimento_da_parcela').value;
-  var valorNF=document.getElementById('valor_restored').value;
+  var valorNF=sanitizarValor(document.getElementById('valor_restored').value);
   setProgress(10,'Fazendo upload dos arquivos...');
   var temRateio=document.getElementById('rateio_entre_uma_ou_mais_categorias').value==='Sim';
   var uploads=[uploadParaPipefy(boletoFile),uploadParaPipefy(nfFile)];
@@ -1363,7 +1381,7 @@ function executarSubmit(token, btn, boletoFile, nfFile){
     setProgress(35,'Criando registro de parcela...');
     var parcelaFields=[
       {field_id:'forma_de_pagamento_da_parcela',field_value:'BOLETO'},
-      {field_id:'valor_da_parcela',field_value:document.getElementById('valor_da_parcela').value},
+      {field_id:'valor_da_parcela',field_value:sanitizarValor(document.getElementById('valor_da_parcela').value)},
       {field_id:'vencimento_da_parcela',field_value:vencParcela?vencParcela+' 12:00':''},
       {field_id:'insira_o_c_digo_de_barras_do_boleto_da_parcela',field_value:document.getElementById('c_digo_de_barras_do_boleto_2').value},
       {field_id:'anexos_quando_for_boletos',field_value:boletoPath}
@@ -1388,8 +1406,8 @@ function executarSubmit(token, btn, boletoFile, nfFile){
           {field_id:'data_de_emiss_o_da_nf',field_value:document.getElementById('data_de_emiss_o_da_nf').value},
           {field_id:'a_nota_fiscal_possui_reten_o_de_imposto',field_value:document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value},
           {field_id:'valor_restored',field_value:valorNF},
-          {field_id:'valor_bruto_da_nota_fiscal',field_value:document.getElementById('valor_bruto_input').value||valorNF},
-          {field_id:'valor_l_quido_da_nf',field_value:document.getElementById('valor_liquido_input').value||valorNF},
+          {field_id:'valor_bruto_da_nota_fiscal',field_value:sanitizarValor(document.getElementById('valor_bruto_input').value||valorNF)},
+          {field_id:'valor_l_quido_da_nf',field_value:sanitizarValor(document.getElementById('valor_liquido_input').value||valorNF)},
 
           {field_id:'anexo_da_nota_fiscal',field_value:nfPath},
           {field_id:'c_digo_de_barras_do_boleto_2',field_value:document.getElementById('c_digo_de_barras_do_boleto_2').value},
