@@ -1112,7 +1112,7 @@ function handleNFUpload(){
   document.getElementById('nf_filename').textContent=file.name;
   document.getElementById('nf_analyzing').classList.add('show');
   fileToBase64(file).then(function(b64){
-    return extractWithClaude(b64,file.type,'Analise esta nota fiscal e retorne APENAS um JSON:\n{"numero_nf":"número da NF","data_emissao":"YYYY-MM-DD","valor":0.00,"retencao_imposto":"Sim ou Não","valor_bruto":0.00,"valor_liquido":0.00}\nSe não houver retenção, valor_bruto e valor_liquido devem ser iguais ao valor.\nRetorne apenas o JSON.');
+    return extractWithClaude(b64,file.type,'Analise esta nota fiscal (DANF-e ou NF-e) e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- numero_nf: somente o número da nota (campo Nº ou N.FISCAL, sem série)\\n- data_emissao: data de EMISSÃO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Não confunda com data de entrada ou saída.\\n- valor: use EXCLUSIVAMENTE o campo VALOR TOTAL DA NOTA (total final). NUNCA use valor de produto isolado ou base de cálculo.\\n- retencao_imposto: "Sim" se houver retenção de ISS/IR/CSRF, caso contrário "Não"\\n- valor_bruto e valor_liquido: iguais a valor se sem retenção.\\n{"numero_nf":"string","data_emissao":"YYYY-MM-DD","valor":0.00,"retencao_imposto":"Sim ou Não","valor_bruto":0.00,"valor_liquido":0.00}');
   }).then(function(r){
     document.getElementById('nf_analyzing').classList.remove('show');
     if(r){
@@ -1137,7 +1137,7 @@ function handleBoletoUpload(){
   document.getElementById('boleto_filename').textContent=file.name;
   document.getElementById('boleto_analyzing').classList.add('show');
   fileToBase64(file).then(function(b64){
-    return extractWithClaude(b64,file.type,'Analise este boleto e retorne APENAS um JSON:\n{"codigo_barras":"código completo","valor_parcela":0.00,"vencimento":"YYYY-MM-DD"}\nRetorne apenas o JSON.');
+    return extractWithClaude(b64,file.type,'Analise este boleto bancário e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- codigo_barras: linha digitável completa com todos os dígitos sem espaços, exatamente como aparece no documento\\n- valor_parcela: valor do boleto (campo VALOR DO DOCUMENTO ou VALOR COBRADO), como número decimal\\n- vencimento: data de VENCIMENTO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Use o campo VENCIMENTO, não confunda com data do documento.\\n{"codigo_barras":"string","valor_parcela":0.00,"vencimento":"YYYY-MM-DD"}');
   }).then(function(r){
     document.getElementById('boleto_analyzing').classList.remove('show');
     if(r){
