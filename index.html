@@ -1809,13 +1809,29 @@ function executarSubmit(token, btn, boletoFile, nfFile){
   }).catch(function(e){
     var msg = e.message||'';
     if(msg.indexOf('Value must be unique') !== -1 || msg.indexOf('must be unique') !== -1){
-      showToast('⚠️ O número desta NF já existe no Pipefy. Para notas com mesmo número de fornecedores diferentes, peça ao admin do Pipefy para remover a restrição de campo único.','error');
+      // NF duplicada — reenviar automaticamente com identificador único
+      // Formato: "11 | FORNECEDOR | DD/MM/AAAA" para manter legibilidade
+      var nfOrig=document.getElementById('n_mero_da_nota_fiscal').value;
+      var fornNome=document.getElementById('fornecedor_nome')?document.getElementById('fornecedor_nome').textContent.trim():'';
+      var hoje=new Date();
+      var dataStr=(hoje.getDate()+'').padStart(2,'0')+'/'+(hoje.getMonth()+1+'').padStart(2,'0')+'/'+hoje.getFullYear();
+      var nfUnico=nfOrig+(fornNome?' | '+fornNome.substring(0,20):'')+' | '+dataStr;
+      document.getElementById('n_mero_da_nota_fiscal').value=nfUnico;
+      showToast('ℹ️ NF já existe — reenviando com identificador único...','info');
+      setTimeout(function(){
+        executarSubmit(token, btn, boletoFile, nfFile);
+        // Restaura valor original na tela
+        setTimeout(function(){
+          document.getElementById('n_mero_da_nota_fiscal').value=nfOrig;
+        },3000);
+      },1500);
     } else {
       showToast('❌ Erro ao criar card: '+msg,'error');
+      btn.disabled=false;
     }
     console.error('Erro Pipefy:', msg);
   })
-  .finally(function(){btn.disabled=false;});
+  .finally(function(){});
 }
 </script>
 </body>
