@@ -1719,12 +1719,25 @@ function submitForm(){
 
 function verificarNFDuplicada(numeroNF, token){
   if(!numeroNF) return Promise.resolve([]);
-  var query='{ cards(pipe_id: "302699293", search: {title: "'+numeroNF+'"}) { edges { node { id title current_phase { name } } } } }';
+  var nfLimpo = String(numeroNF).trim();
+  var query='{ cards(pipe_id: "302699293", search: {title: "'+nfLimpo+'"}) { edges { node { id title current_phase { name done } } } } }';
   return pipefyQuery(query,{}).then(function(res){
     var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
-    // Filtra só cards cujo título contenha o número da NF
     return edges.filter(function(e){
-      return e.node&&e.node.title&&e.node.title.indexOf(numeroNF)!==-1;
+      if(!e.node||!e.node.title) return false;
+      // Fase concluída ou cancelada — não bloqueia
+      if(e.node.done) return false;
+      var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
+      var fasesBloqueantes=['conclu','finaliz','pago','cancel','reprova','arquiv'];
+      var faseInativa=fasesBloqueantes.some(function(f){
+        return fase.toLowerCase().indexOf(f)!==-1;
+      });
+      if(faseInativa) return false;
+      // Verifica match EXATO do número da NF no título (não substring)
+      var titulo=e.node.title.trim();
+      // Aceita se o título É o número, ou começa/termina com ele separado por espaço/hífen/ponto
+      var regex=new RegExp('(^|[\\s\\-\\.])'+nfLimpo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([\\s\\-\\.]|$)');
+      return titulo===nfLimpo||regex.test(titulo);
     });
   }).catch(function(){return [];});
 }
