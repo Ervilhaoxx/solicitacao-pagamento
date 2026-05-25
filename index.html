@@ -1708,7 +1708,7 @@ function submitForm(){
       var fase=cardsAtivos[0].node.current_phase.name;
       btn.disabled=false;
       document.getElementById('progress_bar').classList.remove('show');
-      showToast('⚠️ NF '+numeroNF+' já existe no Pipefy (fase: '+fase+'). Verifique antes de continuar.','error');
+      showToast('⚠️ NF '+numeroNF+' já tem um card aberto no Pipefy (fase: '+fase+'). Verifique antes de continuar.','error');
       return;
     }
     executarSubmit(token, btn, boletoFile, nfFile);
@@ -1809,11 +1809,11 @@ function executarSubmit(token, btn, boletoFile, nfFile){
   }).catch(function(e){
     var msg = e.message||'';
     if(msg.indexOf('Value must be unique') !== -1 || msg.indexOf('must be unique') !== -1){
-      showToast('⚠️ Esta Nota Fiscal já existe no Pipefy em uma fase ativa. Verifique antes de continuar.','error');
+      showToast('⚠️ O Pipefy recusou: número da NF já cadastrado. Verifique se já existe um card com esta NF ou tente com outro número.','error');
     } else {
-      showToast('❌ Erro: '+msg,'error');
+      showToast('❌ Erro ao criar card: '+msg,'error');
     }
-    console.error(e);
+    console.error('Erro Pipefy:', msg);
   })
   .finally(function(){btn.disabled=false;});
 }
