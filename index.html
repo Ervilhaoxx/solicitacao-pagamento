@@ -1809,7 +1809,7 @@ function executarSubmit(token, btn, boletoFile, nfFile){
   }).catch(function(e){
     var msg = e.message||'';
     if(msg.indexOf('Value must be unique') !== -1 || msg.indexOf('must be unique') !== -1){
-      showToast('⚠️ O Pipefy recusou: número da NF já cadastrado. Verifique se já existe um card com esta NF ou tente com outro número.','error');
+      showToast('⚠️ O número desta NF já existe no Pipefy. Para notas com mesmo número de fornecedores diferentes, peça ao admin do Pipefy para remover a restrição de campo único.','error');
     } else {
       showToast('❌ Erro ao criar card: '+msg,'error');
     }
