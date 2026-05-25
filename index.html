@@ -1103,6 +1103,13 @@ window.addEventListener('DOMContentLoaded',function(){
   document.getElementById('boleto_file').addEventListener('change',handleBoletoUpload);
   document.getElementById('rateio_file').addEventListener('change',handleRateioUpload);
   document.getElementById('btn_submit').addEventListener('click',submitForm);
+  // Formatação visual BR nos campos de valor
+  ['valor_restored','valor_bruto_input','valor_liquido_input','valor_da_parcela'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('blur',function(){ formatarValorInput(this); });
+    el.addEventListener('focus',function(){ editarValorInput(this); });
+  });
 });
 
 function showToast(msg,type){
@@ -1687,10 +1694,12 @@ function submitForm(){
   if(!tipoSolicita){showToast('⚠️ Selecione o Tipo de Solicitação antes de enviar!','error');return;}
   if(!fornecedorId){showToast('⚠️ Selecione um Fornecedor antes de enviar!','error');return;}
   if(!numeroNF){showToast('⚠️ Preencha o Número da Nota Fiscal antes de enviar!','error');return;}
-  if(!valorParcela){showToast('⚠️ Preencha o Valor da Parcela antes de enviar!','error');return;}
+  var valorParcelaNum=parseFloat(valorParcela.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'));
+  if(!valorParcela||isNaN(valorParcelaNum)||valorParcelaNum<=0){showToast('⚠️ Preencha o Valor da Parcela com um valor válido!','error');return;}
   if(!vencParcela2){showToast('⚠️ Preencha o Vencimento da Parcela antes de enviar!','error');return;}
   if(!codBarras){showToast('⚠️ Preencha o Código de Barras do Boleto antes de enviar!','error');return;}
-  if(!valorNFCheck){showToast('⚠️ Preencha o Valor da NF antes de enviar!','error');return;}
+  var valorNFNum=parseFloat(valorNFCheck.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'));
+  if(!valorNFCheck||isNaN(valorNFNum)||valorNFNum<=0){showToast('⚠️ Preencha o Valor da NF com um valor válido!','error');return;}
   if(!dataEmissao){showToast('⚠️ Preencha a Data de Emissão da NF antes de enviar!','error');return;}
   btn.disabled=true;
   setProgress(5,'Verificando nota fiscal...');
@@ -1729,22 +1738,17 @@ function formatarValorInput(el){
   }
 }
 
-// Ao focar, remove formatação para edição fácil
+// Ao focar, exibe número puro (sem formatação) para facilitar digitação
 function editarValorInput(el){
   var raw=el.value.replace(/R\$\s*/g,'').trim();
-  // mantém vírgula como decimal para edição
-  el.value=raw;
+  // Converte "1.996,00" para "1996.00" para edição mais natural
+  if(raw.indexOf(',')!==-1){raw=raw.replace(/\./g,'').replace(',','.');}
+  var n=parseFloat(raw);
+  if(!isNaN(n)&&raw!=='') el.value=n.toFixed(2);
+  else el.value=raw;
+  // Seleciona tudo para facilitar substituição
+  setTimeout(function(){el.select();},0);
 }
-
-// Registra formatação nos campos de valor
-document.addEventListener('DOMContentLoaded',function(){
-  ['valor_restored','valor_bruto_input','valor_liquido_input','valor_da_parcela'].forEach(function(id){
-    var el=document.getElementById(id);
-    if(!el) return;
-    el.addEventListener('blur',function(){ formatarValorInput(this); });
-    el.addEventListener('focus',function(){ editarValorInput(this); });
-  });
-});
 
 function sanitizarValor(v){
   var s=String(v).replace(/R\$\s*/g,'').trim();
