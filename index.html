@@ -1330,6 +1330,11 @@ function submitForm(){
   var codBarras=document.getElementById('c_digo_de_barras_do_boleto_2').value.trim();
   var valorNFCheck=document.getElementById('valor_restored').value.trim();
   var dataEmissao=document.getElementById('data_de_emiss_o_da_nf').value.trim();
+  var tipoSolicita=document.getElementById('tipo_de_solicita_o_de_solicita_o').value.trim();
+  var fornecedorId=document.getElementById('fornecedor_id').value.trim();
+  if(!tipoSolicita){showToast('⚠️ Selecione o Tipo de Solicitação antes de enviar!','error');return;}
+  if(!fornecedorId){showToast('⚠️ Selecione um Fornecedor antes de enviar!','error');return;}
+  if(!numeroNF){showToast('⚠️ Preencha o Número da Nota Fiscal antes de enviar!','error');return;}
   if(!valorParcela){showToast('⚠️ Preencha o Valor da Parcela antes de enviar!','error');return;}
   if(!vencParcela2){showToast('⚠️ Preencha o Vencimento da Parcela antes de enviar!','error');return;}
   if(!codBarras){showToast('⚠️ Preencha o Código de Barras do Boleto antes de enviar!','error');return;}
