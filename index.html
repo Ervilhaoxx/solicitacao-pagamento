@@ -774,7 +774,7 @@ body {
     <div class="row">
       <div class="field">
         <label>Valor da NF <span class="req">*</span></label>
-        <input type="number" step="0.01" id="valor_restored" placeholder="Ex: 1500.00" />
+        <input type="text" inputmode="decimal" id="valor_restored" placeholder="Ex: 1.996,00" />
         <div class="extracted" id="ext_nf_valor">✨ Preenchido automaticamente</div>
       </div>
       <div class="field">
@@ -789,12 +789,12 @@ body {
       <div class="row">
         <div class="field">
           <label>Valor Bruto da NF <span class="req">*</span></label>
-          <input type="number" step="0.01" id="valor_bruto_input" placeholder="Ex: 1500.00" />
+          <input type="text" inputmode="decimal" id="valor_bruto_input" placeholder="Ex: 1.996,00" />
           <div class="extracted" id="ext_valor_bruto">✨ Preenchido automaticamente</div>
         </div>
         <div class="field">
           <label>Valor Líquido da NF <span class="req">*</span></label>
-          <input type="number" step="0.01" id="valor_liquido_input" placeholder="Ex: 1350.00" />
+          <input type="text" inputmode="decimal" id="valor_liquido_input" placeholder="Ex: 1.800,00" />
           <div class="extracted" id="ext_valor_liquido">✨ Preenchido automaticamente</div>
         </div>
       </div>
@@ -817,7 +817,7 @@ body {
     <div class="row">
       <div class="field">
         <label>Valor da Parcela <span class="req">*</span></label>
-        <input type="number" step="0.01" id="valor_da_parcela" placeholder="Ex: 1500.00" />
+        <input type="text" inputmode="decimal" id="valor_da_parcela" placeholder="Ex: 1.996,00" />
         <div class="extracted" id="ext_valor_parcela">✨ Preenchido automaticamente</div>
       </div>
       <div class="field">
@@ -1414,7 +1414,7 @@ function calcTotais(){
   }
   var gtEl=document.getElementById('gt');
   if(gtEl) gtEl.textContent=grand>0?formatarBRL(grand):'R$ 0,00';
-  var nfVal=parseFloat(document.getElementById('valor_restored').value)||0;
+  var rawNF=document.getElementById('valor_restored').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'); var nfVal=parseFloat(rawNF)||0;
   if(document.getElementById('rateio_nf_display'))
     document.getElementById('rateio_nf_display').textContent=nfVal>0?formatarBRL(nfVal):'R$ 0,00';
   var valEl=document.getElementById('rateio_validacao');
@@ -1468,10 +1468,10 @@ function handleNFUpload(){
     if(r){
       if(r.numero_nf){document.getElementById('n_mero_da_nota_fiscal').value=r.numero_nf;document.getElementById('ext_nf_num').classList.add('show');}
       if(r.data_emissao){document.getElementById('data_de_emiss_o_da_nf').value=r.data_emissao;document.getElementById('ext_nf_data').classList.add('show');}
-      if(r.valor){document.getElementById('valor_restored').value=r.valor;document.getElementById('ext_nf_valor').classList.add('show');calcTotais();}
+      if(r.valor){var elNFV=document.getElementById('valor_restored');elNFV.value=parseFloat(r.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('ext_nf_valor').classList.add('show');calcTotais();}
       if(r.retencao_imposto==='Sim'){
-        if(r.valor_bruto){document.getElementById('valor_bruto_input').value=r.valor_bruto;document.getElementById('ext_valor_bruto').classList.add('show');}
-        if(r.valor_liquido){document.getElementById('valor_liquido_input').value=r.valor_liquido;document.getElementById('ext_valor_liquido').classList.add('show');}
+        if(r.valor_bruto){document.getElementById('valor_bruto_input').value=parseFloat(r.valor_bruto).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('ext_valor_bruto').classList.add('show');}
+        if(r.valor_liquido){document.getElementById('valor_liquido_input').value=parseFloat(r.valor_liquido).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('ext_valor_liquido').classList.add('show');}
       }
       if(r.retencao_imposto){document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value=r.retencao_imposto;document.getElementById('ext_nf_ret').classList.add('show');}
       document.getElementById('nf_extracted_list').innerHTML='<li>📌 NF: <b>'+(r.numero_nf||'-')+'</b></li><li>📅 Data: <b>'+(r.data_emissao||'-')+'</b></li><li>💰 Valor: <b>'+(r.valor?formatarBRL(r.valor):'-')+'</b></li><li>🧾 Retenção: <b>'+(r.retencao_imposto||'-')+'</b></li>';
@@ -1487,12 +1487,12 @@ function handleBoletoUpload(){
   document.getElementById('boleto_filename').textContent=file.name;
   document.getElementById('boleto_analyzing').classList.add('show');
   fileToBase64(file).then(function(b64){
-    return extractWithClaude(b64,file.type,'Analise este boleto bancário e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- codigo_barras: linha digitável completa com todos os dígitos sem espaços, exatamente como aparece no documento\\n- valor_parcela: valor do boleto (campo VALOR DO DOCUMENTO ou VALOR COBRADO), como número decimal\\n- vencimento: data de VENCIMENTO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Use o campo VENCIMENTO, não confunda com data do documento.\\n{"codigo_barras":"string","valor_parcela":0.00,"vencimento":"YYYY-MM-DD"}');
+    return extractWithClaude(b64,file.type,'Analise este boleto bancário e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- codigo_barras: extraia a linha digitável ou código de barras EXATAMENTE como aparece no documento, preservando espaços, pontos e outros caracteres de formatação. Não remova nem adicione nada\\n- valor_parcela: valor do boleto (campo VALOR DO DOCUMENTO ou VALOR COBRADO), como número decimal\\n- vencimento: data de VENCIMENTO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Use o campo VENCIMENTO, não confunda com data do documento.\\n{"codigo_barras":"string","valor_parcela":0.00,"vencimento":"YYYY-MM-DD"}');
   }).then(function(r){
     document.getElementById('boleto_analyzing').classList.remove('show');
     if(r){
       if(r.codigo_barras){document.getElementById('c_digo_de_barras_do_boleto_2').value=r.codigo_barras;document.getElementById('ext_cod_barras').classList.add('show');}
-      if(r.valor_parcela){document.getElementById('valor_da_parcela').value=r.valor_parcela;document.getElementById('ext_valor_parcela').classList.add('show');}
+      if(r.valor_parcela){document.getElementById('valor_da_parcela').value=parseFloat(r.valor_parcela).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('ext_valor_parcela').classList.add('show');}
       if(r.vencimento){document.getElementById('vencimento_da_parcela').value=r.vencimento;document.getElementById('ext_venc').classList.add('show');}
       document.getElementById('boleto_extracted_list').innerHTML='<li>🔢 Código: <b>'+(r.codigo_barras?r.codigo_barras.substring(0,25)+'...':'-')+'</b></li><li>💰 Valor: <b>'+(r.valor_parcela?formatarBRL(r.valor_parcela):'-')+'</b></li><li>📅 Vencimento: <b>'+(r.vencimento||'-')+'</b></li>';
       document.getElementById('boleto_extracted').classList.add('show');
@@ -1604,7 +1604,7 @@ function gerarPlanilhaRateio(){
   }
   if(!cats.length) return null;
 
-  var nfVal=parseFloat(document.getElementById('valor_restored').value)||0;
+  var rawNF=document.getElementById('valor_restored').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'); var nfVal=parseFloat(rawNF)||0;
 
   // Ler template base64
   var binStr=atob(RATEIO_TEMPLATE_B64);
@@ -1719,6 +1719,32 @@ function verificarNFDuplicada(numeroNF, token){
     });
   }).catch(function(){return [];});
 }
+
+// Formata número para exibição BR: 1996 → "R$ 1.996,00"
+function formatarValorInput(el){
+  var raw=el.value.replace(/R\$\s*/g,'').trim().replace(/\./g,'').replace(',','.');
+  var n=parseFloat(raw);
+  if(!isNaN(n)&&raw!==''){
+    el.value=n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+}
+
+// Ao focar, remove formatação para edição fácil
+function editarValorInput(el){
+  var raw=el.value.replace(/R\$\s*/g,'').trim();
+  // mantém vírgula como decimal para edição
+  el.value=raw;
+}
+
+// Registra formatação nos campos de valor
+document.addEventListener('DOMContentLoaded',function(){
+  ['valor_restored','valor_bruto_input','valor_liquido_input','valor_da_parcela'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('blur',function(){ formatarValorInput(this); });
+    el.addEventListener('focus',function(){ editarValorInput(this); });
+  });
+});
 
 function sanitizarValor(v){
   var s=String(v).replace(/R\$\s*/g,'').trim();
