@@ -1364,10 +1364,13 @@ function verificarNFDuplicada(numeroNF, token){
 }
 
 function sanitizarValor(v){
-  var n=parseFloat(String(v).replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.'));
+  var s=String(v).replace(/R\$\s*/g,'').trim();
+  // Se tem vírgula (formato BR: 3.234,60) — remove pontos de milhar e troca vírgula por ponto
+  if(s.indexOf(',')!==-1){s=s.replace(/\./g,'').replace(',','.');}
+  // Se já tem ponto como decimal (vindo do input type=number, ex: 3234.6) — usa direto
+  var n=parseFloat(s);
   return isNaN(n)?'':String(n);
 }
-
 function executarSubmit(token, btn, boletoFile, nfFile){
   var vencParcela=document.getElementById('vencimento_da_parcela').value;
   var valorNF=sanitizarValor(document.getElementById('valor_restored').value);
