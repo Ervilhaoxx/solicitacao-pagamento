@@ -1162,8 +1162,13 @@ function lerOnfly(file){
           });
         });
         Object.keys(resultado).forEach(function(cc){
+          // Remove categorias negativas dentro do CC (reembolsos que zeraram o gasto)
+          Object.keys(resultado[cc]).forEach(function(cat){
+            if(resultado[cc][cat]<0) delete resultado[cc][cat];
+          });
+          // Remove CC se não sobrou nada ou se o total ficou <= 0
           var t=Object.values(resultado[cc]).reduce(function(a,b){return a+b;},0);
-          if(Math.abs(t)<0.01) delete resultado[cc];
+          if(t<=0.01) delete resultado[cc];
         });
         resolve({resultado:resultado,avisos:avisos});
       }catch(err){reject(err);}
@@ -1274,8 +1279,8 @@ function preencherRateio(resultado){
       var colIdx=categoriasUsadas[cat];
       if(!colIdx) return;
       var valor=resultado[cc][cat];
-      // Ignora apenas zero exato — negativos são reembolsos já compensados pelo lerOnfly
-      if(valor===0) return;
+      // Ignora valores zero ou negativos — já foram tratados no lerOnfly
+      if(valor<=0) return;
       var input=document.querySelector('#rateio_tbody input[data-dept="'+deptIdx+'"][data-cat="'+colIdx+'"]');
       if(input){
         input.value=valor.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
