@@ -1473,7 +1473,7 @@ function handleNFUpload(){
   }).then(function(r){
     document.getElementById('nf_analyzing').classList.remove('show');
     if(r){
-      if(r.numero_nf){document.getElementById('n_mero_da_nota_fiscal').value=r.numero_nf;document.getElementById('ext_nf_num').classList.add('show');}
+      if(r.numero_nf){document.getElementById('n_mero_da_nota_fiscal').value=String(r.numero_nf).replace(/[^0-9]/g,'');document.getElementById('ext_nf_num').classList.add('show');}
       if(r.data_emissao){document.getElementById('data_de_emiss_o_da_nf').value=r.data_emissao;document.getElementById('ext_nf_data').classList.add('show');}
       if(r.valor){var elNFV=document.getElementById('valor_restored');elNFV.value=parseFloat(r.valor).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});document.getElementById('ext_nf_valor').classList.add('show');calcTotais();}
       if(r.retencao_imposto==='Sim'){
@@ -1683,7 +1683,7 @@ function submitForm(){
   var nfFile=document.getElementById('nf_file').files[0];
   if(!nfFile){showToast('Anexe a nota fiscal antes de enviar!','error');return;}
   var btn=document.getElementById('btn_submit');
-  var numeroNF=document.getElementById('n_mero_da_nota_fiscal').value.trim();
+  var numeroNF=document.getElementById('n_mero_da_nota_fiscal').value.replace(/[^0-9]/g,'').trim();document.getElementById('n_mero_da_nota_fiscal').value=numeroNF;
   var valorParcela=document.getElementById('valor_da_parcela').value.trim();
   var vencParcela2=document.getElementById('vencimento_da_parcela').value.trim();
   var codBarras=document.getElementById('c_digo_de_barras_do_boleto_2').value.trim();
@@ -1718,9 +1718,28 @@ function submitForm(){
 }
 
 function verificarNFDuplicada(numeroNF, token){
-  // Verificação desativada — o Pipefy bloqueia duplicatas nativamente
-  // via "Value must be unique" ao criar o card
-  return Promise.resolve([]);
+  if(!numeroNF) return Promise.resolve([]);
+  var nfLimpo=String(numeroNF).replace(/[^0-9]/g,'').trim();
+  if(!nfLimpo) return Promise.resolve([]);
+  var fornId=document.getElementById('fornecedor_id').value.trim();
+  // Busca cards com este número de NF no pipe
+  var query='{ cards(pipe_id: "302699293", search: {title: "'+nfLimpo+'"}) { edges { node { id title fields { name value } current_phase { name } } } } }';
+  return pipefyQuery(query,{}).then(function(res){
+    var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
+    return edges.filter(function(e){
+      if(!e.node) return false;
+      // Ignora fases concluídas/pagas
+      var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
+      var fasesDone=['conclu','finaliz','pago','cancel','reprova','arquiv'];
+      if(fasesDone.some(function(f){return fase.toLowerCase().indexOf(f)!==-1;})) return false;
+      // Verifica se é o mesmo fornecedor
+      var fields=e.node.fields||[];
+      var fornField=fields.find(function(f){return f.name&&f.name.toLowerCase().indexOf('fornecedor')!==-1;});
+      if(!fornField) return false;
+      // Compara ID do fornecedor selecionado com o valor do campo no card
+      return fornField.value&&fornField.value.indexOf(fornId)!==-1;
+    });
+  }).catch(function(){return [];});
 }
 
 // Formata número para exibição BR: 1996 → "R$ 1.996,00"
@@ -1809,29 +1828,17 @@ function executarSubmit(token, btn, boletoFile, nfFile){
   }).catch(function(e){
     var msg = e.message||'';
     if(msg.indexOf('Value must be unique') !== -1 || msg.indexOf('must be unique') !== -1){
-      // NF duplicada — reenviar automaticamente com identificador único
-      // Formato: "11 | FORNECEDOR | DD/MM/AAAA" para manter legibilidade
-      var nfOrig=document.getElementById('n_mero_da_nota_fiscal').value;
-      var fornNome=document.getElementById('fornecedor_nome')?document.getElementById('fornecedor_nome').textContent.trim():'';
-      var hoje=new Date();
-      var dataStr=(hoje.getDate()+'').padStart(2,'0')+'/'+(hoje.getMonth()+1+'').padStart(2,'0')+'/'+hoje.getFullYear();
-      var nfUnico=nfOrig+(fornNome?' | '+fornNome.substring(0,20):'')+' | '+dataStr;
-      document.getElementById('n_mero_da_nota_fiscal').value=nfUnico;
-      showToast('ℹ️ NF já existe — reenviando com identificador único...','info');
-      setTimeout(function(){
-        executarSubmit(token, btn, boletoFile, nfFile);
-        // Restaura valor original na tela
-        setTimeout(function(){
-          document.getElementById('n_mero_da_nota_fiscal').value=nfOrig;
-        },3000);
-      },1500);
+      // Número de NF já existe no Pipefy para outro fornecedor
+      // Campo configurado como único no pipe — não é possível contornar via código
+      showToast('⚠️ NF '+document.getElementById("n_mero_da_nota_fiscal").value+' já está cadastrada no Pipefy para outro fornecedor. Entre em contato com o financeiro.','error');
+      btn.disabled=false;
     } else {
       showToast('❌ Erro ao criar card: '+msg,'error');
       btn.disabled=false;
     }
     console.error('Erro Pipefy:', msg);
   })
-  .finally(function(){});
+  .finally(function(){});;
 }
 </script>
 </body>
