@@ -1297,12 +1297,26 @@ function preencherRateio(resultado){
       sel.appendChild(opt);
     });
   }
-  var categoriasUsadas={};
+  // Ordem fixa de categorias — igual ao template Excel
+  var ORDEM_CATS=['Hospedagem','Passagens aéreas','Aluguel de Carro','Passagens rodoviárias'];
+  // Coleta quais categorias realmente aparecem no resultado, mantendo ordem fixa
+  var catsNoResultado={};
   Object.values(resultado).forEach(function(cats){
-    Object.keys(cats).forEach(function(cat){
-      if(cat&&!categoriasUsadas[cat]&&Object.keys(categoriasUsadas).length<NUM_CATS)
-        categoriasUsadas[cat]=Object.keys(categoriasUsadas).length+1;
-    });
+    Object.keys(cats).forEach(function(cat){ if(cat) catsNoResultado[cat]=true; });
+  });
+  var categoriasUsadas={};
+  var colAtual=1;
+  // Primeiro coloca as da ordem fixa que existem no resultado
+  ORDEM_CATS.forEach(function(cat){
+    if(catsNoResultado[cat]&&colAtual<=NUM_CATS){
+      categoriasUsadas[cat]=colAtual++;
+    }
+  });
+  // Depois coloca qualquer extra que não estava na ordem fixa
+  Object.keys(catsNoResultado).forEach(function(cat){
+    if(!categoriasUsadas[cat]&&colAtual<=NUM_CATS){
+      categoriasUsadas[cat]=colAtual++;
+    }
   });
   Object.keys(categoriasUsadas).forEach(function(cat){
     var sel=document.getElementById('cs'+categoriasUsadas[cat]);
