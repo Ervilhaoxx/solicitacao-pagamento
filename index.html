@@ -1170,6 +1170,41 @@ function lerOnfly(file){
           var t=Object.values(resultado[cc]).reduce(function(a,b){return a+b;},0);
           if(t<=0.01) delete resultado[cc];
         });
+        // Ajuste proporcional: se o total do rateio não bate com o valor da NF,
+        // distribui a diferença proporcionalmente entre os CCs com valor
+        var rawNF=document.getElementById('valor_restored').value.replace(/R\$\s*/g,'').replace(/\./g,'').replace(',','.');
+        var nfVal=parseFloat(rawNF)||0;
+        if(nfVal>0){
+          var totalRateio=0;
+          Object.keys(resultado).forEach(function(cc){
+            Object.keys(resultado[cc]).forEach(function(cat){
+              totalRateio+=resultado[cc][cat]||0;
+            });
+          });
+          totalRateio=Math.round(totalRateio*100)/100;
+          var diff=Math.round((nfVal-totalRateio)*100)/100;
+          if(Math.abs(diff)>0.01){
+            // Distribui proporcionalmente ao peso de cada CC no total
+            var pesos={};
+            Object.keys(resultado).forEach(function(cc){
+              var tCC=Object.values(resultado[cc]).reduce(function(a,b){return a+b;},0);
+              pesos[cc]=tCC;
+            });
+            var ccs=Object.keys(resultado);
+            var distribuido=0;
+            for(var i=0;i<ccs.length;i++){
+              var cc=ccs[i];
+              var proporcao=pesos[cc]/totalRateio;
+              var ajuste=i<ccs.length-1
+                ? Math.round(diff*proporcao*100)/100
+                : Math.round((diff-distribuido)*100)/100; // último pega o resto
+              distribuido+=ajuste;
+              // Ajusta na primeira categoria do CC
+              var primeiraCat=Object.keys(resultado[cc])[0];
+              resultado[cc][primeiraCat]=Math.round((resultado[cc][primeiraCat]+ajuste)*100)/100;
+            }
+          }
+        }
         resolve({resultado:resultado,avisos:avisos});
       }catch(err){reject(err);}
     };
