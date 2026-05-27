@@ -1389,6 +1389,35 @@ function carregarFornecedores(){
   buscarPagina();
 }
 
+function matchFornecedorAutomatico(nomeEmitente){
+  // Tenta selecionar automaticamente o fornecedor pelo nome extraído da NF
+  if(!nomeEmitente||!fornecedorCarregado||!todosFornecedores.length) return false;
+  var nome=nomeEmitente.toLowerCase().trim();
+  // 1. Tenta match exato
+  var exato=todosFornecedores.find(function(f){
+    return f.nome.toLowerCase()===nome;
+  });
+  if(exato){selecionarFornecedor(exato.id,exato.nome);return true;}
+  // 2. Tenta match por palavras principais (ignora LTDA, EIRELI, SA, etc.)
+  var stopwords=['ltda','eireli','s/a','sa','me','epp','inc','llc','tecnologia','comercio','servicos','distribuidora'];
+  var palavras=nome.split(/\s+/).filter(function(p){
+    return p.length>2&&stopwords.indexOf(p)===-1;
+  });
+  if(palavras.length===0) return false;
+  var melhor=null,melhorScore=0;
+  todosFornecedores.forEach(function(f){
+    var fn=f.nome.toLowerCase();
+    var score=palavras.filter(function(p){return fn.indexOf(p)!==-1;}).length;
+    var proporcao=score/palavras.length;
+    if(proporcao>melhorScore){melhorScore=proporcao;melhor=f;}
+  });
+  if(melhor&&melhorScore>=0.6){
+    selecionarFornecedor(melhor.id,melhor.nome);
+    return true;
+  }
+  return false;
+}
+
 function filtrarFornecedores(query){
   var dd=document.getElementById('fornecedor_dropdown');
   if(!query||query.length<2){dd.style.display='none';return;}
@@ -1537,20 +1566,48 @@ function handleNFUpload(){
       }
       if(r.retencao_imposto){document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value=r.retencao_imposto;document.getElementById('ext_nf_ret').classList.add('show');}
       document.getElementById('nf_extracted_list').innerHTML='<li>📌 NF: <b>'+(r.numero_nf||'-')+'</b></li><li>📅 Data: <b>'+(r.data_emissao||'-')+'</b></li><li>💰 Valor: <b>'+(r.valor?formatarBRL(r.valor):'-')+'</b></li><li>🧾 Retenção: <b>'+(r.retencao_imposto||'-')+'</b></li>';
-      // Busca histórico do fornecedor pelo CNPJ extraído
-      if(r.cnpj_emitente){
+      // Seleciona fornecedor e busca histórico automaticamente
+      if(r.nome_emitente){
         var _tok=document.getElementById('pipefy_token').value||PIPEFY_TOKEN;
-        // Preenche campo de busca de fornecedor com o nome extraído
-        if(!document.getElementById('fornecedor_id').value&&r.nome_emitente){
-          document.getElementById('fornecedor_search').value=r.nome_emitente;
-          filtrarFornecedores(r.nome_emitente);
+        var jaTemFornecedor=!!document.getElementById('fornecedor_id').value;
+        function _buscarHistorico(){
+          buscarHistoricoFornecedor(r.cnpj_emitente,r.nome_emitente,_tok).then(function(card){
+            if(card) aplicarHistorico(card);
+            else showToast('ℹ️ Fornecedor selecionado. Nenhum histórico encontrado no Pipefy.','info');
+          });
         }
-        // Busca histórico e aplica campos automaticamente
-        buscarHistoricoFornecedor(r.cnpj_emitente,r.nome_emitente,_tok).then(function(card){
-          if(card){
-            aplicarHistorico(card);
+        if(!jaTemFornecedor){
+          if(fornecedorCarregado){
+            // Fornecedores já carregados — tenta match imediato
+            var achou=matchFornecedorAutomatico(r.nome_emitente);
+            if(achou) _buscarHistorico();
+            else{
+              // Não achou — preenche campo de busca para o usuário completar
+              document.getElementById('fornecedor_search').value=r.nome_emitente;
+              filtrarFornecedores(r.nome_emitente);
+              showToast('⚠️ Confirme o fornecedor na lista e o histórico será aplicado.','info');
+            }
+          } else {
+            // Fornecedores ainda carregando — aguarda e tenta depois
+            var _tentativas=0;
+            var _intervalo=setInterval(function(){
+              _tentativas++;
+              if(fornecedorCarregado){
+                clearInterval(_intervalo);
+                var achou=matchFornecedorAutomatico(r.nome_emitente);
+                if(achou) _buscarHistorico();
+                else{
+                  document.getElementById('fornecedor_search').value=r.nome_emitente;
+                  filtrarFornecedores(r.nome_emitente);
+                }
+              }
+              if(_tentativas>30) clearInterval(_intervalo); // timeout 15s
+            },500);
           }
-        });
+        } else {
+          // Fornecedor já selecionado — só busca histórico
+          _buscarHistorico();
+        }
       }
       document.getElementById('nf_extracted').classList.add('show');
       showToast('Nota fiscal analisada!','success');
