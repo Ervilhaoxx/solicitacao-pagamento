@@ -1524,7 +1524,7 @@ function handleNFUpload(){
   document.getElementById('nf_filename').textContent=file.name;
   document.getElementById('nf_analyzing').classList.add('show');
   fileToBase64(file).then(function(b64){
-    return extractWithClaude(b64,file.type,'Analise esta nota fiscal (DANF-e ou NF-e) e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- numero_nf: somente o número da nota (campo Nº ou N.FISCAL, sem série)\\n- data_emissao: data de EMISSÃO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Não confunda com data de entrada ou saída.\\n- valor: use EXCLUSIVAMENTE o campo VALOR TOTAL DA NOTA (total final). NUNCA use valor de produto isolado ou base de cálculo.\\n- retencao_imposto: "Sim" se houver retenção de ISS/IR/CSRF, caso contrário "Não"\\n- valor_bruto e valor_liquido: iguais a valor se sem retenção.\\n{"numero_nf":"string","data_emissao":"YYYY-MM-DD","valor":0.00,"retencao_imposto":"Sim ou Não","valor_bruto":0.00,"valor_liquido":0.00}');
+    return extractWithClaude(b64,file.type,'Analise esta nota fiscal (DANF-e ou NF-e) e retorne APENAS um JSON válido sem texto adicional.\\nREGRAS OBRIGATÓRIAS:\\n- numero_nf: somente o número da nota (campo Nº ou N.FISCAL, sem série)\\n- cnpj_emitente: CNPJ do EMITENTE (fornecedor que emite a nota). Retorne APENAS números sem pontos ou traços. Ex: 12641430000171\\n- nome_emitente: razão social do emitente (fornecedor)\\n- data_emissao: data de EMISSÃO em formato YYYY-MM-DD. O documento pode usar DD/MM/YYYY, converta corretamente. Não confunda com data de entrada ou saída.\\n- valor: use EXCLUSIVAMENTE o campo VALOR TOTAL DA NOTA (total final). NUNCA use valor de produto isolado ou base de cálculo.\\n- retencao_imposto: \"Sim\" se houver retenção de ISS/IR/CSRF, caso contrário \"Não\"\\n- valor_bruto e valor_liquido: iguais a valor se sem retenção.\\n{\"numero_nf\":\"string\",\"cnpj_emitente\":\"somente números\",\"nome_emitente\":\"string\",\"data_emissao\":\"YYYY-MM-DD\",\"valor\":0.00,\"retencao_imposto\":\"Sim ou Não\",\"valor_bruto\":0.00,\"valor_liquido\":0.00}');
   }).then(function(r){
     document.getElementById('nf_analyzing').classList.remove('show');
     if(r){
@@ -1537,6 +1537,21 @@ function handleNFUpload(){
       }
       if(r.retencao_imposto){document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value=r.retencao_imposto;document.getElementById('ext_nf_ret').classList.add('show');}
       document.getElementById('nf_extracted_list').innerHTML='<li>📌 NF: <b>'+(r.numero_nf||'-')+'</b></li><li>📅 Data: <b>'+(r.data_emissao||'-')+'</b></li><li>💰 Valor: <b>'+(r.valor?formatarBRL(r.valor):'-')+'</b></li><li>🧾 Retenção: <b>'+(r.retencao_imposto||'-')+'</b></li>';
+      // Busca histórico do fornecedor pelo CNPJ extraído
+      if(r.cnpj_emitente){
+        var _tok=document.getElementById('pipefy_token').value||PIPEFY_TOKEN;
+        // Preenche campo de busca de fornecedor com o nome extraído
+        if(!document.getElementById('fornecedor_id').value&&r.nome_emitente){
+          document.getElementById('fornecedor_search').value=r.nome_emitente;
+          filtrarFornecedores(r.nome_emitente);
+        }
+        // Busca histórico e aplica campos automaticamente
+        buscarHistoricoFornecedor(r.cnpj_emitente,_tok).then(function(card){
+          if(card){
+            aplicarHistorico(card);
+          }
+        });
+      }
       document.getElementById('nf_extracted').classList.add('show');
       showToast('Nota fiscal analisada!','success');
     }else showToast('Não foi possível extrair. Preencha manualmente.','error');
@@ -1770,6 +1785,60 @@ function submitForm(){
   }).catch(function(){
     executarSubmit(token, btn, boletoFile, nfFile);
   });
+}
+
+function buscarHistoricoFornecedor(cnpj, token){
+  if(!cnpj) return Promise.resolve(null);
+  // Busca cards no pipe filtrando pelo CNPJ do fornecedor no campo descrição/título
+  var query='{ cards(pipe_id: "302699293", search: {title: "'+cnpj+'"}) { edges { node { id title fields { name value array_value } current_phase { name } } } } }';
+  return pipefyQuery(query,{}).then(function(res){
+    var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
+    // Filtra cards em fase concluída/aprovada — pega o mais recente
+    var concluidos=edges.filter(function(e){
+      var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
+      return ['conclu','finaliz','pago','aprova'].some(function(f){return fase.toLowerCase().indexOf(f)!==-1;});
+    });
+    if(concluidos.length===0) return null;
+    // Retorna o card mais recente (primeiro da lista)
+    return concluidos[0].node;
+  }).catch(function(){return null;});
+}
+
+function aplicarHistorico(card){
+  if(!card||!card.fields) return;
+  var campos={};
+  card.fields.forEach(function(f){campos[f.name]=f.value||'';});
+
+  // Tipo de solicitação
+  var tipoEl=document.getElementById('tipo_de_solicita_o_de_solicita_o');
+  var tipoVal=campos['Tipo de solicitação']||campos['Tipo de Solicitação']||'';
+  if(tipoVal&&tipoEl){
+    for(var i=0;i<tipoEl.options.length;i++){
+      if(tipoEl.options[i].value===tipoVal){tipoEl.value=tipoVal;break;}
+    }
+  }
+
+  // Retenção de imposto
+  var retencaoEl=document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto');
+  var retencaoVal=campos['A nota fiscal possui retenção de imposto?']||campos['Retenção']||'';
+  if(retencaoVal&&retencaoEl) retencaoEl.value=retencaoVal;
+
+  // Frequência de pagamento
+  var freqEl=document.getElementById('qual_a_frequ_ncia_de_pagamento_deste_fornecedor');
+  var freqVal=campos['Qual a frequência de pagamento deste fornecedor?']||campos['Frequência']||'';
+  if(freqVal&&freqEl) freqEl.value=freqVal;
+
+  // Rateio
+  var rateioEl=document.getElementById('rateio_entre_uma_ou_mais_categorias');
+  var rateioVal=campos['Rateio entre uma ou mais categorias?']||campos['Rateio']||'';
+  if(rateioVal&&rateioEl) rateioEl.value=rateioVal;
+
+  // Centro de custo (se não tiver rateio)
+  var ccEl=document.getElementById('selecione_o_centro_de_custo');
+  var ccVal=campos['Selecione o centro de custo']||campos['Centro de custo']||'';
+  if(ccVal&&ccEl) ccEl.value=ccVal;
+
+  showToast('✅ Histórico do fornecedor aplicado automaticamente!','success');
 }
 
 function verificarNFDuplicada(numeroNF, token){
