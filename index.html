@@ -1566,47 +1566,31 @@ function handleNFUpload(){
       }
       if(r.retencao_imposto){document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto').value=r.retencao_imposto;document.getElementById('ext_nf_ret').classList.add('show');}
       document.getElementById('nf_extracted_list').innerHTML='<li>📌 NF: <b>'+(r.numero_nf||'-')+'</b></li><li>📅 Data: <b>'+(r.data_emissao||'-')+'</b></li><li>💰 Valor: <b>'+(r.valor?formatarBRL(r.valor):'-')+'</b></li><li>🧾 Retenção: <b>'+(r.retencao_imposto||'-')+'</b></li>';
-      // Seleciona fornecedor e busca histórico automaticamente
+      // Seleciona fornecedor automaticamente pelo nome extraído da NF
       if(r.nome_emitente){
-        var _tok=document.getElementById('pipefy_token').value||PIPEFY_TOKEN;
         var jaTemFornecedor=!!document.getElementById('fornecedor_id').value;
-        function _buscarHistorico(){
-          buscarHistoricoFornecedor(r.cnpj_emitente,r.nome_emitente,_tok).then(function(card){
-            if(card) aplicarHistorico(card);
-            else showToast('ℹ️ Fornecedor selecionado. Nenhum histórico encontrado no Pipefy.','info');
-          });
-        }
         if(!jaTemFornecedor){
           if(fornecedorCarregado){
-            // Fornecedores já carregados — tenta match imediato
             var achou=matchFornecedorAutomatico(r.nome_emitente);
-            if(achou) _buscarHistorico();
-            else{
-              // Não achou — preenche campo de busca para o usuário completar
+            if(!achou){
               document.getElementById('fornecedor_search').value=r.nome_emitente;
               filtrarFornecedores(r.nome_emitente);
-              showToast('⚠️ Confirme o fornecedor na lista e o histórico será aplicado.','info');
             }
           } else {
-            // Fornecedores ainda carregando — aguarda e tenta depois
             var _tentativas=0;
             var _intervalo=setInterval(function(){
               _tentativas++;
               if(fornecedorCarregado){
                 clearInterval(_intervalo);
                 var achou=matchFornecedorAutomatico(r.nome_emitente);
-                if(achou) _buscarHistorico();
-                else{
+                if(!achou){
                   document.getElementById('fornecedor_search').value=r.nome_emitente;
                   filtrarFornecedores(r.nome_emitente);
                 }
               }
-              if(_tentativas>30) clearInterval(_intervalo); // timeout 15s
+              if(_tentativas>30) clearInterval(_intervalo);
             },500);
           }
-        } else {
-          // Fornecedor já selecionado — só busca histórico
-          _buscarHistorico();
         }
       }
       document.getElementById('nf_extracted').classList.add('show');
@@ -1842,90 +1826,6 @@ function submitForm(){
   }).catch(function(){
     executarSubmit(token, btn, boletoFile, nfFile);
   });
-}
-
-function buscarHistoricoFornecedor(cnpj, nomeEmitente, token){
-  if(!cnpj&&!nomeEmitente) return Promise.resolve(null);
-  // Busca pelos cards mais recentes do pipe e filtra pelo fornecedor
-  // Estratégia: busca por nome do emitente no título, ou pelos últimos cards
-  var termoBusca=nomeEmitente?nomeEmitente.substring(0,20):cnpj;
-  var query='{ cards(pipe_id: "302699293", search: {title: "'+termoBusca+'"}) { edges { node { id title fields { name value } current_phase { name } } } } }';
-  return pipefyQuery(query,{}).then(function(res){
-    var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
-    if(edges.length===0){
-      // Fallback: busca pelos últimos 20 cards do pipe e filtra pelo fornecedor_id
-      var fornId=document.getElementById('fornecedor_id').value;
-      if(!fornId) return null;
-      var q2='{ cards(pipe_id: "302699293") { edges { node { id title fields { name value } current_phase { name } } } } }';
-      return pipefyQuery(q2,{}).then(function(res2){
-        var edges2=res2&&res2.data&&res2.data.cards&&res2.data.cards.edges||[];
-        return filtrarCardsFornecedor(edges2, fornId);
-      });
-    }
-    var fornId=document.getElementById('fornecedor_id').value;
-    // Se temos fornecedor_id, filtra por ele; senão usa qualquer card encontrado
-    if(fornId){
-      var filtrado=filtrarCardsFornecedor(edges, fornId);
-      if(filtrado) return filtrado;
-    }
-    // Pega o primeiro card em fase concluída/aprovada
-    var concluidos=edges.filter(function(e){
-      var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
-      return ['conclu','finaliz','pago','aprova'].some(function(f){return fase.toLowerCase().indexOf(f)!==-1;});
-    });
-    return concluidos.length>0?concluidos[0].node:null;
-  }).catch(function(){return null;});
-}
-
-function filtrarCardsFornecedor(edges, fornId){
-  // Filtra cards onde o campo fornecedor contém o ID do fornecedor selecionado
-  var candidatos=edges.filter(function(e){
-    if(!e.node||!e.node.fields) return false;
-    var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
-    var ativa=['conclu','finaliz','pago','aprova'].some(function(f){return fase.toLowerCase().indexOf(f)!==-1;});
-    if(!ativa) return false;
-    return e.node.fields.some(function(f){
-      return f.value&&String(f.value).indexOf(fornId)!==-1;
-    });
-  });
-  return candidatos.length>0?candidatos[0].node:null;
-}
-
-function aplicarHistorico(card){
-  if(!card||!card.fields) return;
-  var campos={};
-  card.fields.forEach(function(f){campos[f.name]=f.value||'';});
-
-  // Tipo de solicitação
-  var tipoEl=document.getElementById('tipo_de_solicita_o_de_solicita_o');
-  var tipoVal=campos['Tipo de solicitação']||campos['Tipo de Solicitação']||'';
-  if(tipoVal&&tipoEl){
-    for(var i=0;i<tipoEl.options.length;i++){
-      if(tipoEl.options[i].value===tipoVal){tipoEl.value=tipoVal;break;}
-    }
-  }
-
-  // Retenção de imposto
-  var retencaoEl=document.getElementById('a_nota_fiscal_possui_reten_o_de_imposto');
-  var retencaoVal=campos['A nota fiscal possui retenção de imposto?']||campos['Retenção']||'';
-  if(retencaoVal&&retencaoEl) retencaoEl.value=retencaoVal;
-
-  // Frequência de pagamento
-  var freqEl=document.getElementById('qual_a_frequ_ncia_de_pagamento_deste_fornecedor');
-  var freqVal=campos['Qual a frequência de pagamento deste fornecedor?']||campos['Frequência']||'';
-  if(freqVal&&freqEl) freqEl.value=freqVal;
-
-  // Rateio
-  var rateioEl=document.getElementById('rateio_entre_uma_ou_mais_categorias');
-  var rateioVal=campos['Rateio entre uma ou mais categorias?']||campos['Rateio']||'';
-  if(rateioVal&&rateioEl) rateioEl.value=rateioVal;
-
-  // Centro de custo (se não tiver rateio)
-  var ccEl=document.getElementById('selecione_o_centro_de_custo');
-  var ccVal=campos['Selecione o centro de custo']||campos['Centro de custo']||'';
-  if(ccVal&&ccEl) ccEl.value=ccVal;
-
-  showToast('✅ Histórico do fornecedor aplicado automaticamente!','success');
 }
 
 function verificarNFDuplicada(numeroNF, token){
