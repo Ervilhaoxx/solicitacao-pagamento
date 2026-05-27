@@ -1546,7 +1546,7 @@ function handleNFUpload(){
           filtrarFornecedores(r.nome_emitente);
         }
         // Busca histórico e aplica campos automaticamente
-        buscarHistoricoFornecedor(r.cnpj_emitente,_tok).then(function(card){
+        buscarHistoricoFornecedor(r.cnpj_emitente,r.nome_emitente,_tok).then(function(card){
           if(card){
             aplicarHistorico(card);
           }
@@ -1787,21 +1787,51 @@ function submitForm(){
   });
 }
 
-function buscarHistoricoFornecedor(cnpj, token){
-  if(!cnpj) return Promise.resolve(null);
-  // Busca cards no pipe filtrando pelo CNPJ do fornecedor no campo descrição/título
-  var query='{ cards(pipe_id: "302699293", search: {title: "'+cnpj+'"}) { edges { node { id title fields { name value array_value } current_phase { name } } } } }';
+function buscarHistoricoFornecedor(cnpj, nomeEmitente, token){
+  if(!cnpj&&!nomeEmitente) return Promise.resolve(null);
+  // Busca pelos cards mais recentes do pipe e filtra pelo fornecedor
+  // Estratégia: busca por nome do emitente no título, ou pelos últimos cards
+  var termoBusca=nomeEmitente?nomeEmitente.substring(0,20):cnpj;
+  var query='{ cards(pipe_id: "302699293", search: {title: "'+termoBusca+'"}) { edges { node { id title fields { name value } current_phase { name } } } } }';
   return pipefyQuery(query,{}).then(function(res){
     var edges=res&&res.data&&res.data.cards&&res.data.cards.edges||[];
-    // Filtra cards em fase concluída/aprovada — pega o mais recente
+    if(edges.length===0){
+      // Fallback: busca pelos últimos 20 cards do pipe e filtra pelo fornecedor_id
+      var fornId=document.getElementById('fornecedor_id').value;
+      if(!fornId) return null;
+      var q2='{ cards(pipe_id: "302699293") { edges { node { id title fields { name value } current_phase { name } } } } }';
+      return pipefyQuery(q2,{}).then(function(res2){
+        var edges2=res2&&res2.data&&res2.data.cards&&res2.data.cards.edges||[];
+        return filtrarCardsFornecedor(edges2, fornId);
+      });
+    }
+    var fornId=document.getElementById('fornecedor_id').value;
+    // Se temos fornecedor_id, filtra por ele; senão usa qualquer card encontrado
+    if(fornId){
+      var filtrado=filtrarCardsFornecedor(edges, fornId);
+      if(filtrado) return filtrado;
+    }
+    // Pega o primeiro card em fase concluída/aprovada
     var concluidos=edges.filter(function(e){
       var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
       return ['conclu','finaliz','pago','aprova'].some(function(f){return fase.toLowerCase().indexOf(f)!==-1;});
     });
-    if(concluidos.length===0) return null;
-    // Retorna o card mais recente (primeiro da lista)
-    return concluidos[0].node;
+    return concluidos.length>0?concluidos[0].node:null;
   }).catch(function(){return null;});
+}
+
+function filtrarCardsFornecedor(edges, fornId){
+  // Filtra cards onde o campo fornecedor contém o ID do fornecedor selecionado
+  var candidatos=edges.filter(function(e){
+    if(!e.node||!e.node.fields) return false;
+    var fase=(e.node.current_phase&&e.node.current_phase.name)||'';
+    var ativa=['conclu','finaliz','pago','aprova'].some(function(f){return fase.toLowerCase().indexOf(f)!==-1;});
+    if(!ativa) return false;
+    return e.node.fields.some(function(f){
+      return f.value&&String(f.value).indexOf(fornId)!==-1;
+    });
+  });
+  return candidatos.length>0?candidatos[0].node:null;
 }
 
 function aplicarHistorico(card){
