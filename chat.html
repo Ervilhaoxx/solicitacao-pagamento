@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pague · Logcomex AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:        #0B0D19;
+  --sidebar:   #0f1120;
+  --surface:   #161929;
+  --surface2:  #1e2235;
+  --border:    rgba(226,208,250,0.10);
+  --border2:   rgba(226,208,250,0.18);
+  --purple:    #6613D0;
+  --purple-d:  #5B11BA;
+  --purple-l:  #8E44ED;
+  --lavender:  #E2D0FA;
+  --orange:    #FE8F1C;
+  --text:      #E8E9F3;
+  --muted:     rgba(226,208,250,0.55);
+  --subtle:    rgba(226,208,250,0.28);
+  --success:   #1FAC66;
+  --danger:    #C70404;
+  --font:      'Poppins',ui-sans-serif,system-ui,sans-serif;
+  --ease:      cubic-bezier(0.2,0.8,0.2,1);
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);overflow:hidden;}
+
+/* ── LOGO SVG ─────────────────────────────────────────── */
+.logo-svg path{fill:white;}
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+.app{display:flex;height:100vh;}
+
+/* ── SIDEBAR ──────────────────────────────────────────── */
+.sidebar{
+  width:260px;flex-shrink:0;
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0;
+}
+.sidebar-header{
+  padding:20px 16px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sidebar-logo{display:flex;align-items:center;gap:10px;}
+.sidebar-logo-text{
+  font-size:11px;font-weight:600;
+  color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.1em;
+}
+.btn-new{
+  background:var(--purple);
+  border:none;border-radius:8px;
+  color:white;font-size:12px;font-weight:600;
+  padding:6px 12px;cursor:pointer;
+  font-family:var(--font);
+  display:flex;align-items:center;gap:5px;
+  transition:background 200ms var(--ease);
+}
+.btn-new:hover{background:var(--purple-d);}
+
+.sidebar-section{
+  padding:12px 8px 4px;
+  font-size:10px;font-weight:700;
+  color:var(--subtle);
+  text-transform:uppercase;letter-spacing:0.12em;
+}
+.sidebar-list{flex:1;overflow-y:auto;padding:0 8px 16px;}
+.sidebar-item{
+  padding:9px 10px;border-radius:8px;
+  cursor:pointer;margin-bottom:2px;
+  font-size:12px;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  transition:background 150ms,color 150ms;
+  display:flex;align-items:center;gap:8px;
+}
+.sidebar-item:hover{background:rgba(226,208,250,0.06);color:var(--text);}
+.sidebar-item.active{background:rgba(102,19,208,0.20);color:var(--lavender);}
+.sidebar-item svg{flex-shrink:0;opacity:0.6;}
+
+.sidebar-footer{
+  padding:12px 16px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.user-avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#2D085D,#6613D0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:white;flex-shrink:0;
+}
+.user-info .user-nome{font-size:12px;font-weight:600;color:var(--text);}
+.user-info .user-email{font-size:10px;color:var(--muted);}
+.btn-logout{
+  margin-left:auto;background:none;border:none;
+  cursor:pointer;color:var(--subtle);padding:4px;
+  border-radius:4px;transition:color 150ms;
+}
+.btn-logout:hover{color:var(--danger);}
+
+/* ── MAIN ─────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;}
+
+/* ── TOP BAR ──────────────────────────────────────────── */
+.topbar{
+  padding:0 24px;
+  height:56px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text);}
+.topbar-badge{
+  font-size:10px;font-weight:700;
+  background:var(--orange);color:#0B0D19;
+  padding:3px 10px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:0.06em;
+}
+
+/* ── CHAT AREA ────────────────────────────────────────── */
+.chat-area{
+  flex:1;overflow-y:auto;
+  padding:32px 0;
+  scroll-behavior:smooth;
+}
+.chat-inner{max-width:720px;margin:0 auto;padding:0 24px;}
+
+/* ── WELCOME ──────────────────────────────────────────── */
+.welcome{
+  text-align:center;
+  padding:40px 20px;
+}
+.welcome-icon{
+  width:56px;height:56px;
+  background:linear-gradient(135deg,#2D085D,#6613D0);
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  box-shadow:0 8px 32px rgba(102,19,208,0.30);
+}
+.welcome h2{
+  font-size:22px;font-weight:700;
+  color:var(--text);margin-bottom:8px;
+  letter-spacing:-0.01em;
+}
+.welcome p{
+  font-size:14px;color:var(--muted);
+  line-height:1.6;max-width:480px;margin:0 auto 28px;
+}
+.welcome-chips{
+  display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
+}
+.chip{
+  padding:8px 14px;border-radius:999px;
+  border:1px solid var(--border2);
+  font-size:12px;color:var(--muted);
+  cursor:pointer;background:var(--surface);
+  transition:all 150ms var(--ease);
+}
+.chip:hover{
+  border-color:var(--purple-l);
+  color:var(--lavender);
+  background:rgba(102,19,208,0.12);
+}
+
+/* ── MENSAGENS ────────────────────────────────────────── */
+.msg{display:flex;gap:12px;margin-bottom:24px;animation:fadeUp 200ms var(--ease);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+.msg-avatar{
+  width:32px;height:32px;border-radius:10px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;margin-top:2px;
+}
+.msg-avatar.ai{
+  background:linear-gradient(135deg,#2D085D,#6613D0);
+  box-shadow:0 4px 12px rgba(102,19,208,0.25);
+}
+.msg-avatar.user{
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  color:var(--lavender);
+}
+.msg-content{flex:1;min-width:0;}
+.msg-sender{
+  font-size:11px;font-weight:700;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:6px;
+}
+.msg-sender.ai{color:var(--lavender);}
+.msg-sender.user{color:var(--muted);}
+.msg-badge{
+  font-size:9px;font-weight:700;
+  background:rgba(102,19,208,0.25);
+  color:var(--lavender);
+  padding:2px 6px;border-radius:999px;
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+.msg-text{
+  font-size:14px;line-height:1.65;
+  color:var(--text);
+}
+.msg-text p{margin-bottom:8px;}
+.msg-text p:last-child{margin-bottom:0;}
+.msg-text strong{color:var(--lavender);font-weight:600;}
+.msg-text ul{padding-left:16px;margin:6px 0;}
+.msg-text li{margin-bottom:4px;}
+
+/* ── CARD DE CONFIRMAÇÃO ──────────────────────────────── */
+.confirm-card{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:20px;
+  margin-top:12px;
+}
+.confirm-card h4{
+  font-size:12px;font-weight:700;
+  color:var(--muted);text-transform:uppercase;
+  letter-spacing:0.1em;margin-bottom:14px;
+  display:flex;align-items:center;gap:6px;
+}
+.confirm-row{
+  display:flex;justify-content:space-between;
+  align-items:flex-start;
+  padding:8px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.confirm-row:last-of-type{border-bottom:none;}
+.confirm-label{color:var(--muted);font-size:12px;}
+.confirm-value{color:var(--text);font-weight:500;text-align:right;max-width:60%;}
+.confirm-value.green{color:var(--success);}
+.confirm-value.orange{color:var(--orange);}
+.confirm-actions{
+  display:flex;gap:8px;margin-top:16px;
+}
+.btn-confirm{
+  flex:1;padding:11px;
+  background:var(--success);
+  color:white;border:none;border-radius:10px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:var(--font);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  transition:background 200ms,transform 120ms;
+}
+.btn-confirm:hover{background:#17914f;}
+.btn-confirm:active{transform:scale(0.98);}
+.btn-adjust{
+  padding:11px 20px;
+  background:var(--surface2);
+  color:var(--muted);border:1px solid var(--border2);
+  border-radius:10px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font);
+  transition:all 200ms;
+}
+.btn-adjust:hover{border-color:var(--purple-l);color:var(--lavender);}
+
+/* ── UPLOAD PREVIEW ───────────────────────────────────── */
+.upload-preview{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;
+}
+.upload-chip{
+  display:flex;align-items:center;gap:6px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:6px 10px;
+  font-size:11px;color:var(--muted);
+}
+.upload-chip svg{color:var(--orange);}
+.upload-chip .chip-name{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── THINKING ─────────────────────────────────────────── */
+.thinking{display:flex;gap:4px;align-items:center;padding:4px 0;}
+.dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--purple-l);
+  animation:bounce 1.2s infinite;
+}
+.dot:nth-child(2){animation-delay:0.2s;}
+.dot:nth-child(3){animation-delay:0.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* ── INPUT AREA ───────────────────────────────────────── */
+.input-area{
+  padding:16px 24px 20px;
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+  max-width:768px;margin:0 auto;width:100%;
+}
+.input-box{
+  background:var(--surface);
+  border:1px solid var(--border2);
+  border-radius:16px;
+  padding:12px 14px;
+  display:flex;flex-direction:column;gap:10px;
+  transition:border-color 200ms;
+}
+.input-box:focus-within{border-color:var(--purple-l);}
+
+.files-preview{display:none;gap:6px;flex-wrap:wrap;}
+.files-preview.show{display:flex;}
+.file-tag{
+  display:flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;padding:4px 8px;font-size:11px;color:var(--muted);
+}
+.file-tag button{
+  background:none;border:none;cursor:pointer;
+  color:var(--subtle);font-size:14px;line-height:1;padding:0;
+  transition:color 150ms;
+}
+.file-tag button:hover{color:var(--danger);}
+
+.input-row{display:flex;align-items:flex-end;gap:8px;}
+textarea#msg_input{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:14px;
+  resize:none;line-height:1.5;max-height:160px;
+  min-height:24px;
+}
+textarea#msg_input::placeholder{color:var(--subtle);}
+
+.input-actions{display:flex;align-items:center;gap:6px;}
+.btn-attach{
+  background:none;border:none;cursor:pointer;
+  color:var(--subtle);padding:4px;border-radius:6px;
+  transition:color 150ms,background 150ms;
+}
+.btn-attach:hover{color:var(--lavender);background:rgba(226,208,250,0.08);}
+#file_input{display:none;}
+
+.btn-send{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--purple);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background 200ms,transform 120ms;
+  flex-shrink:0;
+}
+.btn-send:hover{background:var(--purple-d);}
+.btn-send:active{transform:scale(0.95);}
+.btn-send:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
+
+.input-hint{
+  font-size:10px;color:var(--subtle);
+  text-align:center;padding-top:4px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg width="90" height="14" viewBox="0 0 197 30" fill="none" xmlns="http://www.w3.org/2000/svg" class="logo-svg"><path d="M170.124 20.0846H167.091V23.1403H170.124V20.0846Z"/><path d="M191.659 23.1386V7.58946H194.71V21.0058C194.71 22.1838 193.755 23.1386 192.577 23.1386H191.659Z"/><path d="M193.263 0.0573844C193.429 1.63067 194.663 2.87879 196.224 3.04137C196.3 3.05094 196.3 3.16571 196.224 3.17049C194.663 3.33786 193.424 4.58119 193.263 6.15448C193.254 6.23099 193.14 6.23099 193.135 6.15448C192.969 4.58119 191.735 3.33308 190.174 3.17049C190.098 3.16093 190.098 3.04616 190.174 3.04137C191.735 2.874 192.974 1.63067 193.135 0.0573844C193.144 -0.0191281 193.258 -0.0191281 193.263 0.0573844Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M178.862 7.26371C179.672 7.26371 180.412 7.3822 181.083 7.61913C181.755 7.85607 182.337 8.19166 182.831 8.62605C183.313 9.01527 183.708 9.46542 184.015 9.97641V7.58953H187.096V23.1386H184.015V20.7574C183.63 21.2924 183.167 21.7368 182.594 22.1317C182.041 22.5266 181.419 22.8425 180.728 23.0794C180.057 23.3163 179.346 23.4348 178.596 23.4348C177.312 23.4348 176.137 23.0794 175.071 22.3686C174.025 21.6578 173.185 20.6902 172.554 19.466C171.922 18.2419 171.606 16.8598 171.606 15.3197C171.606 13.7598 171.922 12.3776 172.554 11.1732C173.205 9.94899 174.074 8.9913 175.16 8.30023C176.266 7.60917 177.5 7.26372 178.862 7.26371ZM179.395 10.0773C178.487 10.0773 177.677 10.3044 176.967 10.7586C176.275 11.2127 175.723 11.8346 175.308 12.6244C174.913 13.4142 174.716 14.3127 174.716 15.3197C174.716 16.3464 174.913 17.2646 175.308 18.0741C175.723 18.8639 176.276 19.4859 176.967 19.94C177.677 20.3941 178.487 20.6212 179.395 20.6212C180.323 20.6212 181.143 20.3941 181.854 19.94C182.564 19.4858 183.117 18.8639 183.512 18.0741C183.927 17.2646 184.134 16.3464 184.134 15.3197C184.134 14.3127 183.927 13.4142 183.512 12.6244C183.117 11.8347 182.564 11.2127 181.854 10.7586C181.143 10.3044 180.323 10.0773 179.395 10.0773Z"/><path d="M86.4294 18.6307C86.2683 18.8051 86.0983 18.9677 85.9061 19.1185C85.0768 19.7719 84.0671 20.1015 82.9097 20.1015C81.5378 20.1015 80.3922 19.6551 79.5052 18.7696C78.6168 17.8886 78.1674 16.7488 78.1674 15.3829C78.1674 14.017 78.6182 12.8817 79.5052 11.9962C80.3951 11.1107 81.5349 10.6643 82.9097 10.6643C84.0671 10.6643 85.0768 10.9954 85.9061 11.6473C86.0997 11.7981 86.2668 11.9667 86.4279 12.1411L88.3526 9.65908C86.7221 8.2503 84.9585 7.62499 82.9082 7.62499C80.642 7.62499 78.7469 8.36856 77.273 9.83204C75.78 11.2778 75.0231 13.1434 75.0231 15.3814C75.0231 17.6195 75.7785 19.4851 77.2716 20.9309C78.7454 22.3958 80.6405 23.1379 82.9067 23.1379C84.9541 23.1379 86.7206 22.517 88.1531 21.2871L86.4294 18.6307Z"/><path d="M97.9214 7.63091C95.6553 7.63091 93.7586 8.37448 92.2863 9.83796C90.7932 11.2837 90.0379 13.1493 90.0379 15.3874C90.0379 17.6255 90.7932 19.491 92.2863 20.9368C93.7601 22.4017 95.6553 23.1438 97.9214 23.1438C100.188 23.1438 102.083 22.3988 103.557 20.9368C105.05 19.491 105.805 17.6255 105.805 15.3874C105.805 13.1493 105.05 11.2837 103.557 9.83796C102.086 8.373 100.188 7.63091 97.9214 7.63091ZM101.326 18.7726C100.436 19.6581 99.2962 20.1045 97.9214 20.1045C96.5467 20.1045 95.4069 19.6581 94.517 18.7726C93.6271 17.8915 93.1806 16.7518 93.1806 15.3859C93.1806 14.02 93.6315 12.8847 94.517 11.9992C95.4054 11.1137 96.5467 10.6673 97.9214 10.6673C99.2962 10.6673 100.436 11.1137 101.326 11.9992C102.214 12.8847 102.662 14.0214 102.662 15.3859C102.662 16.7503 102.213 17.8886 101.326 18.7726Z"/><path d="M47.7122 7.63091C45.446 7.63091 43.5509 8.37448 42.077 9.83796C40.584 11.2837 39.8286 13.1493 39.8286 15.3874C39.8286 17.6255 40.584 19.491 42.077 20.9368C43.5509 22.4017 45.446 23.1438 47.7122 23.1438C49.9784 23.1438 51.8735 22.3988 53.3473 20.9368C54.8404 19.491 55.5972 17.6255 55.5972 15.3874C55.5972 13.1493 54.8418 11.2837 53.3488 9.83796C51.875 8.373 49.9798 7.63091 47.7137 7.63091H47.7122ZM51.1151 18.7726C50.2267 19.6581 49.0855 20.1045 47.7107 20.1045C46.3359 20.1045 45.1962 19.6581 44.3063 18.7726C43.4178 17.8915 42.9684 16.7518 42.9684 15.3859C42.9684 14.02 43.4193 12.8847 44.3063 11.9992C45.1947 11.1137 46.3359 10.6673 47.7107 10.6673C49.0855 10.6673 50.2252 11.1137 51.1151 11.9992C52.0051 12.8847 52.453 14.0214 52.453 15.3859C52.453 16.7503 52.0021 17.8886 51.1151 18.7726Z"/><path d="M115.931 7.63091H111.822V10.8033H108.63V23.1438H111.823V10.8077H115.946C117.412 10.8077 118.601 11.9888 118.601 13.4479V23.1423H121.794V13.4612C121.794 10.2415 119.17 7.63091 115.933 7.63091H115.931Z"/><path d="M125.207 7.63091H121.151V10.8077H125.221C126.687 10.8077 127.873 11.9888 127.873 13.4479V23.1423H131.066V13.4612C131.066 10.2415 128.442 7.63091 125.204 7.63091H125.207Z"/><path d="M160.941 7.63091L156.734 13.0606L152.523 7.63091H148.936L154.956 15.3859L148.936 23.1423H152.523L156.734 17.7112L160.941 23.1423H164.528L158.511 15.3859L164.528 7.63091H160.941Z"/><path d="M34.6369 17.3919V0.96096H31.4808V17.3786C31.4808 20.5613 34.0752 23.1423 37.2727 23.1423H38.0798V20.0025H37.2549C35.8047 20.0025 34.6325 18.8347 34.6325 17.3948H34.6369V17.3919Z"/><path d="M137.271 18.2833L137.307 18.338C137.764 19.0638 138.401 19.6285 139.212 20.0306C140.048 20.443 141.007 20.647 142.093 20.647C142.864 20.647 143.576 20.5273 144.233 20.2834C144.89 20.0468 145.593 19.6226 146.338 19.0165L147.776 20.922C147.321 21.3403 146.766 21.7084 146.111 22.0262C145.451 22.3574 144.741 22.6235 143.983 22.8245C143.244 23.0078 142.518 23.098 141.799 23.098C140.223 23.098 138.826 22.7861 137.605 22.1652C136.404 21.5251 135.456 20.6559 134.758 19.5605C134.081 18.4651 133.743 17.2041 133.743 15.7776C133.743 14.6408 133.938 13.6075 134.324 12.6747C134.712 11.7419 135.245 10.9378 135.923 10.2607C136.618 9.56594 137.441 9.03672 138.392 8.67011C139.362 8.28724 140.408 8.09359 141.535 8.09359C142.524 8.09359 143.443 8.27541 144.295 8.64202C145.151 8.9909 145.885 9.47429 146.503 10.0952C147.142 10.7175 147.624 11.4552 147.953 12.3126C148.301 13.1552 148.465 14.0761 148.446 15.0843L148.417 16.23H136.615L136.63 16.3541C136.716 17.0696 136.93 17.7127 137.27 18.2847L137.271 18.2833ZM145.513 14.1086V13.9963L145.508 13.8411C145.448 13.2084 145.227 12.6511 144.847 12.1588C144.469 11.668 143.989 11.2837 143.412 11.0013C142.834 10.719 142.206 10.5786 141.53 10.5786C140.464 10.5786 139.563 10.7737 138.825 11.1684C138.089 11.5453 137.53 12.11 137.15 12.8625C136.977 13.1966 136.844 13.5676 136.751 13.9726L136.72 14.1086H145.513Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M69.286 7.65455H72.4406V15.1168C72.4435 15.2129 72.445 15.309 72.445 15.4066C72.445 15.5041 72.4435 15.6017 72.4406 15.6978V22.8807C72.4406 27.5106 69.8137 30 64.6324 30C62.3411 30 60.31 29.3318 58.505 27.8846L60.446 25.3789C60.446 25.3789 62.3278 26.8587 64.696 26.8587C67.5993 26.8587 69.286 25.4602 69.286 23.1305V21.6508C68.0531 22.4919 66.5837 22.9147 64.897 22.9147C62.7107 22.9147 60.8939 22.2036 59.4792 20.7978C58.0645 19.3949 57.349 17.5826 57.349 15.408C57.349 13.2335 58.0645 11.4241 59.4792 10.0183C60.8924 8.61246 62.7107 7.90142 64.897 7.90142C66.5852 7.90142 68.0531 8.32568 69.286 9.16681V7.65455ZM69.286 14.6142C69.1441 13.6814 68.7449 12.8832 68.0901 12.2313C67.2563 11.4019 66.1846 10.9806 64.897 10.9806C63.6094 10.9806 62.5362 11.4019 61.704 12.2313C60.8732 13.0606 60.4504 14.1279 60.4504 15.408C60.4504 16.6882 60.8717 17.757 61.704 18.5848C62.5377 19.4141 63.6109 19.8354 64.897 19.8354C66.1831 19.8354 67.2563 19.4141 68.0901 18.5848C68.7435 17.9329 69.1441 17.1332 69.286 16.2004V14.6142Z"/><path d="M22.3405 18.0675H17.2352V23.1429H22.3405V18.0675Z"/><path d="M5.10529 6.64643L0 11.7254V18.0891C0 20.8816 2.27851 23.1467 5.08749 23.1467H11.4887L16.594 18.0714H5.10529V6.64643Z"/><path d="M17.2311 6.01289V17.4343L22.3364 12.3589V0.9375H10.8513L5.746 6.01289H17.2311Z"/></svg>
+      </div>
+      <button class="btn-new" onclick="novaConversa()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo
+      </button>
+    </div>
+    <div class="sidebar-section">Conversas recentes</div>
+    <div class="sidebar-list" id="sidebar_list">
+      <!-- preenchido por JS -->
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-avatar" id="user_avatar">JV</div>
+      <div class="user-info">
+        <div class="user-nome" id="user_nome">João Victor</div>
+        <div class="user-email" id="user_email">joao@logcomex.com</div>
+      </div>
+      <button class="btn-logout" onclick="logout()" title="Sair">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-title" id="topbar_title">Nova solicitação</span>
+      <span class="topbar-badge">Facilities AI</span>
+    </div>
+
+    <div class="chat-area" id="chat_area">
+      <div class="chat-inner" id="chat_inner">
+        <!-- Welcome state -->
+        <div class="welcome" id="welcome_state">
+          <div class="welcome-icon">
+            <svg width="24" height="24" viewBox="0 0 197 30" fill="none"><path d="M193.263 0.057C193.429 1.631 194.663 2.879 196.224 3.041C196.3 3.051 196.3 3.166 196.224 3.170C194.663 3.338 193.424 4.581 193.263 6.154C193.254 6.231 193.14 6.231 193.135 6.154C192.969 4.581 191.735 3.333 190.174 3.170C190.098 3.161 190.098 3.046 190.174 3.041C191.735 2.874 192.974 1.631 193.135 0.057C193.144 -0.019 193.258 -0.019 193.263 0.057Z" fill="#FE8F1C"/></svg>
+          </div>
+          <h2>Olá! Sou o Pague</h2>
+          <p>Sua IA para abertura de cards de pagamento no Pipefy. Anexe a nota fiscal e o boleto — cuido do resto.</p>
+          <div class="welcome-chips">
+            <div class="chip" onclick="chipClick('Quero abrir uma solicitação de pagamento')">📎 Anexar NF + Boleto</div>
+            <div class="chip" onclick="chipClick('Como funciona?')">❓ Como funciona?</div>
+            <div class="chip" onclick="chipClick('Qual o status dos meus últimos cards?')">📋 Meus últimos cards</div>
+          </div>
+        </div>
+        <!-- Mensagens aqui -->
+      </div>
+    </div>
+
+    <div style="max-width:768px;margin:0 auto;width:100%;padding:0 24px;">
+      <div class="input-area" style="padding:0 0 20px;">
+        <div class="input-box">
+          <div class="files-preview" id="files_preview"></div>
+          <div class="input-row">
+            <textarea id="msg_input" rows="1" placeholder="Mensagem... ou arraste os arquivos aqui"
+              onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <div class="input-actions">
+              <button class="btn-attach" onclick="document.getElementById('file_input').click()" title="Anexar PDF">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <input type="file" id="file_input" accept=".pdf" multiple onchange="handleFileSelect(this)"/>
+              <button class="btn-send" id="btn_send" onclick="enviarMensagem()" title="Enviar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="input-hint">O Pague pode cometer erros. Revise antes de confirmar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────────────────────
+var PIPEFY_TOKEN = 'eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJQaXBlZnkiLCJpYXQiOjE3NzQ4OTM1NTMsImp0aSI6IjYzYzA3OTZhLWVhMzQtNGI3MS1hNDRiLTM2YzExODE4YWJkMSIsInN1YiI6MzA0OTM0MjQwLCJ1c2VyIjp7ImlkIjozMDQ5MzQyNDAsImVtYWlsIjoiYW5hLmx5dmlhQGxvZ2NvbWV4LmNvbSJ9LCJ1c2VyX3R5cGUiOiJhdXRoZW50aWNhdGVkIn0.64JtVBi2KQjIBFJNZRWjPXl-x7-vE3PdTfKK3O47WtpdLnFG0mgS1WIXOCQFaiZ87pxR_4r72OXTHIizUTke-g';
+var PIPE_ID = '302699293';
+var LOGGER_ID = '1249410709';
+var APROVADOR_ID = '932558839';
+
+var conversas = JSON.parse(localStorage.getItem('pague_conversas') || '[]');
+var historico = JSON.parse(localStorage.getItem('pague_historico_fornecedores') || '{}');
+var conversa_atual = [];
+var arquivos_pendentes = [];
+var usuario = null;
+var pendingCard = null;
+
+// ── Init ──────────────────────────────────────────────────────────────────
+(function(){
+  var s = sessionStorage.getItem('lx_user');
+  if(!s){ window.location.href='login.html'; return; }
+  try{
+    usuario = JSON.parse(s);
+    var primeiroNome = usuario.nome.split(' ')[0];
+    var iniciais = usuario.nome.split(' ').slice(0,2).map(function(p){return p[0];}).join('').toUpperCase();
+    document.getElementById('user_nome').textContent = primeiroNome;
+    document.getElementById('user_email').textContent = usuario.email;
+    document.getElementById('user_avatar').textContent = iniciais;
+  }catch(e){ window.location.href='login.html'; }
+  renderSidebar();
+})();
+
+function logout(){
+  sessionStorage.removeItem('lx_user');
+  window.location.href = 'login.html';
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────
+function renderSidebar(){
+  var list = document.getElementById('sidebar_list');
+  if(conversas.length === 0){
+    list.innerHTML = '<div style="padding:16px 10px;font-size:12px;color:var(--subtle);text-align:center;">Nenhuma conversa ainda</div>';
+    return;
+  }
+  list.innerHTML = conversas.slice().reverse().slice(0,20).map(function(c){
+    return '<div class="sidebar-item" onclick="carregarConversa(\''+c.id+'\')">'+
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+
+      escapeHtml(c.titulo)+'</div>';
+  }).join('');
+}
+
+function novaConversa(){
+  conversa_atual = [];
+  arquivos_pendentes = [];
+  pendingCard = null;
+  document.getElementById('chat_inner').innerHTML = document.getElementById('chat_inner').innerHTML;
+  // Mostra welcome
+  var wi = document.getElementById('welcome_state');
+  if(wi) wi.style.display = 'block';
+  document.getElementById('topbar_title').textContent = 'Nova solicitação';
+  document.getElementById('files_preview').innerHTML = '';
+  document.getElementById('files_preview').classList.remove('show');
+  document.getElementById('msg_input').value = '';
+  renderSidebar();
+}
+
+function carregarConversa(id){
+  var c = conversas.find(function(x){return x.id===id;});
+  if(!c) return;
+  conversa_atual = c.msgs || [];
+  document.getElementById('topbar_title').textContent = c.titulo;
+  var inner = document.getElementById('chat_inner');
+  inner.innerHTML = '';
+  conversa_atual.forEach(function(m){
+    if(m.role==='assistant') appendAIMsg(m.content, false);
+    else appendUserMsg(m.content, m.files||[], false);
+  });
+  scrollBottom();
+}
+
+function salvarConversa(titulo){
+  var id = 'c_'+Date.now();
+  conversas.push({id:id, titulo:titulo, msgs:conversa_atual});
+  localStorage.setItem('pague_conversas', JSON.stringify(conversas));
+  renderSidebar();
+  return id;
+}
+
+// ── Mensagens UI ──────────────────────────────────────────────────────────
+function escapeHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function appendUserMsg(texto, files, scroll){
+  var inner = document.getElementById('chat_inner');
+  var wi = document.getElementById('welcome_state');
+  if(wi) wi.style.display='none';
+  var filesHtml = '';
+  if(files && files.length){
+    filesHtml = '<div class="upload-preview">' + files.map(function(f){
+      return '<div class="upload-chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="chip-name">'+escapeHtml(f)+'</span></div>';
+    }).join('') + '</div>';
+  }
+  var html = '<div class="msg">'+
+    '<div class="msg-avatar user">'+escapeHtml((usuario&&usuario.nome||'U').split(' ').slice(0,2).map(function(p){return p[0];}).join('').toUpperCase())+'</div>'+
+    '<div class="msg-content">'+
+    '<div class="msg-sender user">Você</div>'+
+    '<div class="msg-text"><p>'+escapeHtml(texto)+'</p>'+filesHtml+'</div>'+
+    '</div></div>';
+  inner.insertAdjacentHTML('beforeend', html);
+  if(scroll!==false) scrollBottom();
+}
+
+function appendAIMsg(html, scroll){
+  var inner = document.getElementById('chat_inner');
+  var msgHtml = '<div class="msg">'+
+    '<div class="msg-avatar ai">'+
+      '<svg width="16" height="16" viewBox="0 0 197 30" fill="none"><path d="M193.263 0.057C193.429 1.631 194.663 2.879 196.224 3.041C196.3 3.051 196.3 3.166 196.224 3.170C194.663 3.338 193.424 4.581 193.263 6.154C193.254 6.231 193.14 6.231 193.135 6.154C192.969 4.581 191.735 3.333 190.174 3.170C190.098 3.161 190.098 3.046 190.174 3.041C191.735 2.874 192.974 1.631 193.135 0.057C193.144 -0.019 193.258 -0.019 193.263 0.057Z" fill="#FE8F1C"/></svg>'+
+    '</div>'+
+    '<div class="msg-content">'+
+    '<div class="msg-sender ai">Pague <span class="msg-badge">AI</span></div>'+
+    '<div class="msg-text">'+html+'</div>'+
+    '</div></div>';
+  inner.insertAdjacentHTML('beforeend', msgHtml);
+  if(scroll!==false) scrollBottom();
+}
+
+function appendThinking(){
+  var inner = document.getElementById('chat_inner');
+  var id = 'thinking_'+Date.now();
+  inner.insertAdjacentHTML('beforeend',
+    '<div class="msg" id="'+id+'">'+
+    '<div class="msg-avatar ai"><svg width="16" height="16" viewBox="0 0 197 30" fill="none"><path d="M193.263 0.057C193.429 1.631 194.663 2.879 196.224 3.041C196.3 3.051 196.3 3.166 196.224 3.170C194.663 3.338 193.424 4.581 193.263 6.154C193.254 6.231 193.14 6.231 193.135 6.154C192.969 4.581 191.735 3.333 190.174 3.170C190.098 3.161 190.098 3.046 190.174 3.041C191.735 2.874 192.974 1.631 193.135 0.057C193.144 -0.019 193.258 -0.019 193.263 0.057Z" fill="#FE8F1C"/></svg></div>'+
+    '<div class="msg-content"><div class="msg-sender ai">Pague <span class="msg-badge">AI</span></div>'+
+    '<div class="msg-text"><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>'+
+    '</div></div>');
+  scrollBottom();
+  return id;
+}
+
+function removeThinking(id){
+  var el = document.getElementById(id);
+  if(el) el.remove();
+}
+
+function scrollBottom(){
+  var area = document.getElementById('chat_area');
+  area.scrollTop = area.scrollHeight;
+}
+
+// ── Arquivos ──────────────────────────────────────────────────────────────
+function handleFileSelect(input){
+  Array.from(input.files).forEach(function(f){ addFile(f); });
+  input.value = '';
+}
+
+function addFile(file){
+  if(!file.name.toLowerCase().endsWith('.pdf')) return;
+  arquivos_pendentes.push(file);
+  renderFilesPreview();
+}
+
+function renderFilesPreview(){
+  var div = document.getElementById('files_preview');
+  if(arquivos_pendentes.length === 0){ div.classList.remove('show'); div.innerHTML=''; return; }
+  div.classList.add('show');
+  div.innerHTML = arquivos_pendentes.map(function(f,i){
+    return '<div class="file-tag">'+
+      '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FE8F1C" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'+
+      '<span>'+escapeHtml(f.name)+'</span>'+
+      '<button onclick="removeFile('+i+')">×</button>'+
+      '</div>';
+  }).join('');
+}
+
+function removeFile(idx){
+  arquivos_pendentes.splice(idx,1);
+  renderFilesPreview();
+}
+
+// Drag & drop
+document.querySelector('.input-box').addEventListener('dragover',function(e){e.preventDefault();});
+document.querySelector('.input-box').addEventListener('drop',function(e){
+  e.preventDefault();
+  Array.from(e.dataTransfer.files).forEach(function(f){ addFile(f); });
+});
+
+// ── Input ─────────────────────────────────────────────────────────────────
+function handleKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); enviarMensagem(); }
+}
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,160)+'px';
+}
+function chipClick(txt){
+  document.getElementById('msg_input').value = txt;
+  enviarMensagem();
+}
+
+// ── Enviar mensagem ───────────────────────────────────────────────────────
+async function enviarMensagem(){
+  var input = document.getElementById('msg_input');
+  var texto = input.value.trim();
+  if(!texto && arquivos_pendentes.length===0) return;
+
+  var arquivosNomes = arquivos_pendentes.map(function(f){return f.name;});
+  var arquivosParaEnviar = arquivos_pendentes.slice();
+  arquivos_pendentes = [];
+  renderFilesPreview();
+  input.value='';
+  autoResize(input);
+
+  // Mostra mensagem do usuário
+  appendUserMsg(texto||'[Arquivos anexados]', arquivosNomes);
+
+  // Adiciona ao histórico da conversa
+  conversa_atual.push({
+    role:'user',
+    content: texto||'[Arquivos anexados]',
+    files: arquivosNomes
+  });
+
+  // Título automático na primeira mensagem
+  if(conversa_atual.length===1){
+    var titulo = arquivosNomes.length ? 'NF '+arquivosNomes[0].replace('.pdf','') : texto.slice(0,40);
+    document.getElementById('topbar_title').textContent = titulo;
+  }
+
+  var thinkId = appendThinking();
+  document.getElementById('btn_send').disabled = true;
+
+  try{
+    // Converte PDFs para base64
+    var pdfsB64 = [];
+    for(var i=0;i<arquivosParaEnviar.length;i++){
+      var b64 = await fileToBase64(arquivosParaEnviar[i]);
+      pdfsB64.push({nome:arquivosParaEnviar[i].name, b64:b64});
+    }
+
+    // Monta o prompt do sistema
+    var sysPrompt = buildSystemPrompt();
+
+    // Monta as mensagens para a API
+    var msgs = buildMessages(pdfsB64, texto);
+
+    // Chama a Claude API
+    var resposta = await callClaude(sysPrompt, msgs);
+
+    removeThinking(thinkId);
+    processarResposta(resposta);
+
+  }catch(err){
+    removeThinking(thinkId);
+    appendAIMsg('<p>❌ Erro ao processar: '+escapeHtml(err.message||'Tente novamente')+'</p>');
+  }
+
+  document.getElementById('btn_send').disabled = false;
+}
+
+function fileToBase64(file){
+  return new Promise(function(resolve,reject){
+    var r = new FileReader();
+    r.onload = function(){ resolve(r.result.split(',')[1]); };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// ── System Prompt ─────────────────────────────────────────────────────────
+function buildSystemPrompt(){
+  var hist = JSON.stringify(historico, null, 2);
+  return `Você é o **Pague**, uma IA especializada em processar solicitações de pagamento da Logcomex.
+
+Seu trabalho é:
+1. Receber nota fiscal (NF) e boleto em PDF
+2. Extrair os dados automaticamente
+3. Consultar o histórico do fornecedor para sugerir os campos
+4. Apresentar um resumo para confirmação
+5. Criar o card no Pipefy após confirmação do usuário
+
+## Histórico de fornecedores conhecido:
+${hist || 'Nenhum histórico ainda'}
+
+## Campos necessários para o card:
+- **Tipo de Solicitação**: "Nota Fiscal" | "Fatura" | "Boleto" | "Reembolso" | "Adiantamento" | "Condomínio/Estacionamento" | "Onfly/Copastur" | "Tecnicopias"
+- **Fornecedor**: nome + ID no Pipefy (use o histórico)
+- **Frequência de Pagamento**: "À vista" | "Semanal" | "Quinzenal" | "Mensal" | "Bimestral" | "Trimestral" | "Semestral" | "Anual"
+- **Rateio**: "Sim" ou "Não"
+- **Centro de Custo** (se sem rateio)
+- **Motivo da Solicitação**: sempre pedir ao usuário
+
+## Regras:
+- Extraia CNPJ, nome do fornecedor, valor total, número NF, data emissão e vencimento dos PDFs
+- Use o histórico do fornecedor para pré-preencher os campos
+- Se não souber algo, PERGUNTE ao usuário
+- Antes de criar o card, sempre mostre o resumo e peça confirmação
+- Quando o usuário confirmar, responda com JSON no formato: {"action":"create_card","data":{...}}
+- Quando precisar pedir o motivo, seja direto: "Qual o motivo desta solicitação?"
+- Seja conciso e objetivo, como um assistente profissional
+
+## Usuário atual:
+Nome: ${usuario ? usuario.nome : 'Desconhecido'}
+Email: ${usuario ? usuario.email : ''}`;
+}
+
+// ── Build Messages ────────────────────────────────────────────────────────
+function buildMessages(pdfsB64, texto){
+  var msgs = [];
+
+  // Histórico da conversa atual
+  conversa_atual.slice(0,-1).forEach(function(m){
+    msgs.push({role:m.role, content:m.content});
+  });
+
+  // Mensagem atual com PDFs
+  var content = [];
+  pdfsB64.forEach(function(pdf){
+    content.push({
+      type:'document',
+      source:{type:'base64', media_type:'application/pdf', data:pdf.b64},
+      title: pdf.nome
+    });
+  });
+  if(texto) content.push({type:'text', text:texto});
+  if(content.length===0) content.push({type:'text',text:'[Arquivos enviados acima]'});
+
+  msgs.push({role:'user', content:content});
+  return msgs;
+}
+
+// ── Claude API ────────────────────────────────────────────────────────────
+async function callClaude(systemPrompt, msgs){
+  var resp = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:2000,
+      system: systemPrompt,
+      messages: msgs
+    })
+  });
+  var data = await resp.json();
+  if(data.error) throw new Error(data.error.message);
+  return data.content[0].text;
+}
+
+// ── Processar Resposta ────────────────────────────────────────────────────
+function processarResposta(texto){
+  conversa_atual.push({role:'assistant', content:texto});
+
+  // Verifica se tem ação de criar card
+  var jsonMatch = texto.match(/\{"action":"create_card"[\s\S]*?\}/);
+  if(jsonMatch){
+    try{
+      var acao = JSON.parse(jsonMatch[0]);
+      if(acao.action==='create_card'){
+        pendingCard = acao.data;
+        var htmlResposta = markdownToHtml(texto.replace(jsonMatch[0],'').trim());
+        appendAIMsg(htmlResposta + buildConfirmCard(acao.data));
+        return;
+      }
+    }catch(e){}
+  }
+
+  appendAIMsg(markdownToHtml(texto));
+}
+
+// ── Confirm Card UI ───────────────────────────────────────────────────────
+function buildConfirmCard(data){
+  var rows = [
+    ['Fornecedor', data.fornecedor_nome || '—'],
+    ['Valor', data.valor ? 'R$ '+parseFloat(data.valor).toLocaleString('pt-BR',{minimumFractionDigits:2}) : '—', 'green'],
+    ['Vencimento', data.vencimento || '—'],
+    ['Tipo', data.tipo || '—'],
+    ['Rateio', data.rateio || '—'],
+    ['Motivo', data.motivo || '—'],
+  ];
+  var rowsHtml = rows.map(function(r){
+    return '<div class="confirm-row">'+
+      '<span class="confirm-label">'+r[0]+'</span>'+
+      '<span class="confirm-value'+(r[2]?' '+r[2]:'')+'">'+(r[1]||'—')+'</span>'+
+      '</div>';
+  }).join('');
+  return '<div class="confirm-card">'+
+    '<h4>📋 Resumo do card</h4>'+
+    rowsHtml+
+    '<div class="confirm-actions">'+
+    '<button class="btn-confirm" onclick="confirmarCard()">✅ Confirmar e criar</button>'+
+    '<button class="btn-adjust" onclick="ajustarCard()">Ajustar</button>'+
+    '</div></div>';
+}
+
+// ── Criar Card no Pipefy ──────────────────────────────────────────────────
+async function confirmarCard(){
+  if(!pendingCard) return;
+  var thinkId = appendThinking();
+  try{
+    var d = pendingCard;
+    var fields = [
+      {field_id:'tipo_de_solicita_o_de_solicita_o', field_value: d.tipo||''},
+      {field_id:'logger', field_value: LOGGER_ID},
+      {field_id:'selecione_o_aprovador', field_value: APROVADOR_ID},
+      {field_id:'selecione_o_fornecedor', field_value: d.fornecedor_id||''},
+      {field_id:'qual_a_frequ_ncia_de_pagamento_deste_fornecedor', field_value: d.frequencia||''},
+      {field_id:'rateio_entre_uma_ou_mais_categorias', field_value: d.rateio||'Não'},
+      {field_id:'n_mero_da_nota_fiscal', field_value: String(d.numero_nf||'').replace(/[^0-9]/g,'')},
+      {field_id:'data_de_emiss_o_da_nf', field_value: d.data_emissao||''},
+      {field_id:'valor_restored', field_value: String(d.valor||'')},
+      {field_id:'a_nota_fiscal_possui_reten_o_de_imposto', field_value: d.retencao||'Não'},
+      {field_id:'valor_da_parcela', field_value: String(d.valor||'')},
+      {field_id:'vencimento_da_parcela', field_value: d.vencimento||''},
+      {field_id:'descreva_sua_solicita_o', field_value: d.motivo||''},
+    ].filter(function(f){return f.field_value;});
+
+    var mutation = `mutation {
+      createCard(input: {
+        pipe_id: "${PIPE_ID}",
+        fields_attributes: ${JSON.stringify(fields)}
+      }) { card { id title url } }
+    }`;
+
+    var resp = await fetch('https://api.pipefy.com/graphql',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+PIPEFY_TOKEN},
+      body: JSON.stringify({query:mutation})
+    });
+    var result = await resp.json();
+
+    removeThinking(thinkId);
+
+    if(result.errors && result.errors.length){
+      appendAIMsg('<p>❌ Erro: '+escapeHtml(result.errors[0].message)+'</p>');
+      return;
+    }
+
+    var card = result.data.createCard.card;
+
+    // Salva histórico do fornecedor
+    if(pendingCard.fornecedor_nome){
+      historico[pendingCard.fornecedor_nome] = {
+        fornecedor_id: pendingCard.fornecedor_id,
+        tipo: pendingCard.tipo,
+        frequencia: pendingCard.frequencia,
+        rateio: pendingCard.rateio,
+        centro_custo: pendingCard.centro_custo,
+        categoria: pendingCard.categoria,
+        atualizado: new Date().toISOString()
+      };
+      localStorage.setItem('pague_historico_fornecedores', JSON.stringify(historico));
+    }
+
+    appendAIMsg(
+      '<p>✅ <strong>Card criado com sucesso!</strong></p>'+
+      '<p>🎫 Card <strong>#'+card.id+'</strong> — '+escapeHtml(card.title)+'</p>'+
+      (card.url?'<p><a href="'+card.url+'" target="_blank" style="color:var(--lavender)">Abrir no Pipefy →</a></p>':'')
+    );
+
+    // Salva conversa
+    salvarConversa('NF '+( pendingCard.numero_nf||pendingCard.fornecedor_nome||'nova'));
+    pendingCard = null;
+
+  }catch(err){
+    removeThinking(thinkId);
+    appendAIMsg('<p>❌ Erro ao criar card: '+escapeHtml(err.message)+'</p>');
+  }
+}
+
+function ajustarCard(){
+  appendAIMsg('<p>Claro! O que você gostaria de ajustar?</p>');
+  document.getElementById('msg_input').focus();
+}
+
+// ── Markdown básico ───────────────────────────────────────────────────────
+function markdownToHtml(txt){
+  return txt
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`(.+?)`/g,'<code style="background:rgba(226,208,250,0.1);padding:1px 5px;border-radius:4px;font-size:12px;">$1</code>')
+    .replace(/^#{1,3}\s(.+)$/gm,'<strong>$1</strong>')
+    .replace(/^[-•]\s(.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s,'<ul>$1</ul>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>')
+    .replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
+}
+</script>
+</body>
+</html>
