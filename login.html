@@ -526,7 +526,7 @@ function processarCallback(){
     }
 
     sessionStorage.setItem('lx_user', JSON.stringify({ nome: nome, email: email }));
-    window.location.href = 'index.html';
+    window.location.href = 'chat.html';
   })
   .catch(function(){
     if(btn) btn.textContent = 'Entrar com Google';
@@ -545,7 +545,7 @@ var sessao = sessionStorage.getItem('lx_user');
 if(sessao){
   try{
     var u = JSON.parse(sessao);
-    if(u && u.nome) window.location.href = 'index.html';
+    if(u && u.nome) window.location.href = 'chat.html';
   }catch(e){}
 }
 </script>
