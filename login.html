@@ -385,8 +385,6 @@ html,body{height:100%;font-family:var(--font-body);}
 .toast.error{background:var(--lx-danger);display:block;}
 .toast.success{background:var(--lx-success);display:block;}
 </style>
-  <!-- Google Identity Services -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -440,21 +438,16 @@ html,body{height:100%;font-family:var(--font-body);}
       <h2 class="login-title">Acesse sua conta</h2>
       <p class="login-sub">Entre com seu e-mail corporativo Logcomex para continuar.</p>
 
-      <!-- Botão Google — wrapper customizado sobre o botão real do Google -->
-      <div style="position:relative;width:100%;height:52px;border-radius:12px;overflow:hidden;">
-        <!-- Botão visual por cima -->
-        <div style="position:absolute;inset:0;background:#6613D0;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:700;color:white;font-family:Poppins,sans-serif;pointer-events:none;box-shadow:0 4px 20px rgba(102,19,208,0.30);letter-spacing:-0.01em;z-index:1;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="white"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="white"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="white"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="white"/>
-          </svg>
-          Entrar com Google
-        </div>
-        <!-- Botão real do Google invisível por baixo — recebe o clique -->
-        <div id="google_signin_btn" style="position:absolute;inset:0;opacity:0;z-index:2;"></div>
-      </div>
+      <!-- Botão Google — redirect flow -->
+      <button id="btn_google" onclick="loginComGoogle()" style="width:100%;padding:14px 16px;background:#6613D0;border:none;border-radius:12px;font-size:15px;font-weight:700;color:white;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(102,19,208,0.30);letter-spacing:-0.01em;transition:background 200ms,transform 120ms;" onmouseover="this.style.background='#5B11BA'" onmouseout="this.style.background='#6613D0'" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="white"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="white"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="white"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="white"/>
+        </svg>
+        Entrar com Google
+      </button>
       <p style="font-size:11px;color:var(--lx-neutral-400);text-align:center;margin-top:8px;">Acesso restrito a colaboradores <strong>@logcomex.com</strong></p>
 
       <div class="error-msg show" id="error_domain" style="display:none;text-align:center;margin-top:12px;">
@@ -481,173 +474,71 @@ html,body{height:100%;font-family:var(--font-body);}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Google OAuth ─────────────────────────────────────
+// ── Google OAuth — Redirect Flow ─────────────────────
 var CLIENT_ID = '154125490387-1tgtni5rh3uat61k0lbr3615r3lpntm7.apps.googleusercontent.com';
+var REDIRECT_URI = window.location.origin + window.location.pathname.replace('login.html','') + 'login.html';
 
-function triggerGoogleLogin(){
-  google.accounts.id.prompt();
+function loginComGoogle(){
+  var state = Math.random().toString(36).substring(2);
+  sessionStorage.setItem('oauth_state', state);
+  var url = 'https://accounts.google.com/o/oauth2/v2/auth' +
+    '?client_id=' + CLIENT_ID +
+    '&redirect_uri=' + encodeURIComponent(REDIRECT_URI) +
+    '&response_type=token' +
+    '&scope=' + encodeURIComponent('openid email profile') +
+    '&hd=logcomex.com' +
+    '&state=' + state +
+    '&prompt=select_account';
+  window.location.href = url;
 }
 
-function handleGoogleLogin(response){
-  // Decodifica o JWT retornado pelo Google
-  var payload = JSON.parse(atob(response.credential.split('.')[1]));
-  var email = payload.email;
-  var nome = payload.name;
-
-  // Valida domínio @logcomex.com
-  if(!email.endsWith('@logcomex.com')){
-    document.getElementById('error_domain').style.display='block';
-    document.getElementById('error_domain').textContent='⚠️ Use seu e-mail @logcomex.com para acessar.';
-    return;
-  }
-
-  // Salva na sessão e redireciona
-  sessionStorage.setItem('lx_user', JSON.stringify({
-    nome: nome,
-    email: email,
-  }));
-  window.location.href = 'index.html';
-}
-
-// Inicializa Google Identity e renderiza botão real invisível
-window.onload = function(){
-  google.accounts.id.initialize({
-    client_id: CLIENT_ID,
-    callback: handleGoogleLogin,
-    hosted_domain: 'logcomex.com'
+function processarCallback(){
+  // Verifica se voltou do Google com token no hash
+  var hash = window.location.hash.substring(1);
+  if(!hash) return;
+  var params = {};
+  hash.split('&').forEach(function(p){
+    var kv = p.split('=');
+    params[kv[0]] = decodeURIComponent(kv[1]||'');
   });
-  // Renderiza o botão real do Google no div invisível
-  google.accounts.id.renderButton(
-    document.getElementById('google_signin_btn'),
-    {
-      theme: 'outline',
-      size: 'large',
-      width: 400,
-      text: 'signin_with'
+  if(!params.access_token) return;
+
+  // Mostra loading
+  var btn = document.getElementById('btn_google');
+  if(btn) btn.textContent = 'Verificando...';
+
+  // Busca dados do usuário com o access_token
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: 'Bearer ' + params.access_token }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(user){
+    var email = user.email;
+    var nome = user.name;
+
+    if(!email || !email.endsWith('@logcomex.com')){
+      var errEl = document.getElementById('error_domain');
+      if(errEl){ errEl.style.display='block'; errEl.textContent='⚠️ Use seu e-mail @logcomex.com para acessar.'; }
+      if(btn) btn.textContent = 'Entrar com Google';
+      // Limpa o hash da URL
+      history.replaceState(null, '', window.location.pathname);
+      return;
     }
-  );
+
+    sessionStorage.setItem('lx_user', JSON.stringify({ nome: nome, email: email }));
+    window.location.href = 'index.html';
+  })
+  .catch(function(){
+    if(btn) btn.textContent = 'Entrar com Google';
+    history.replaceState(null, '', window.location.pathname);
+  });
+}
+
+// Processa callback ao carregar
+window.onload = function(){
+  processarCallback();
 };
 
-// Se já tem sessão, redireciona direto
-// ── Config ──────────────────────────────────────────
-var SHEET_ID = '1XaHYH7Ht49zm9GxTUgcXAS6vnfhh6z_R019Pkn2mofU';
-var BACKEND_URL = 'https://script.google.com/macros/s/AKfycbyDgucsB17Z1Al0_15ZJ1WaPvJHkapmyxITLDHE9WBGl3DHmXNnMJET9xRNLzn-aov7/exec';
-
-var todosColabs = [];
-var colabSelecionado = null;
-
-// ── Toast ────────────────────────────────────────────
-function showToast(msg, tipo){
-  var t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + tipo;
-  setTimeout(function(){ t.className = 'toast'; }, 4000);
-}
-
-// ── Carrega colaboradores via Apps Script ────────────
-function carregarColabs(){
-  document.getElementById('loading_row').classList.add('show');
-  fetch(BACKEND_URL + '?action=getColaboradores')
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      if(data && data.colaboradores){
-        todosColabs = data.colaboradores;
-      }
-    })
-    .catch(function(){
-      // Fallback: carrega lista mínima
-      todosColabs = [
-        {nome:'João Victor Faria', email:'joao.faria@logcomex.com'},
-      ];
-    })
-    .finally(function(){
-      document.getElementById('loading_row').classList.remove('show');
-    });
-}
-
-// ── Filtra colaboradores ─────────────────────────────
-function filtrarColabs(query){
-  var dd = document.getElementById('colab_dropdown');
-  if(!query || query.length < 2){ dd.classList.remove('show'); return; }
-  var q = query.toLowerCase();
-  var filtrados = todosColabs.filter(function(c){
-    return c.nome.toLowerCase().indexOf(q) !== -1 ||
-           (c.email && c.email.toLowerCase().indexOf(q) !== -1);
-  }).slice(0, 8);
-
-  if(filtrados.length === 0){ dd.classList.remove('show'); return; }
-
-  dd.innerHTML = filtrados.map(function(c){
-    var iniciais = c.nome.split(' ').slice(0,2).map(function(p){ return p[0]; }).join('').toUpperCase();
-    return '<div class="colab-item" data-nome="'+c.nome+'" data-email="'+(c.email||'')+'" data-iniciais="'+iniciais+'">' +
-      '<div class="colab-nome">'+c.nome+'</div>' +
-      '<div class="colab-email">'+(c.email||'')+'</div>' +
-      '</div>';
-  }).join('');
-
-  dd.querySelectorAll('.colab-item').forEach(function(el){
-    el.addEventListener('click', function(){
-      selecionarColab(el.dataset.nome, el.dataset.email, el.dataset.iniciais);
-    });
-  });
-
-  dd.classList.add('show');
-}
-
-// ── Seleciona colaborador ────────────────────────────
-function selecionarColab(nome, email, iniciais){
-  colabSelecionado = {nome: nome, email: email};
-
-  // Atualiza card
-  document.getElementById('selected_avatar').textContent = iniciais || nome.slice(0,2).toUpperCase();
-  document.getElementById('selected_nome').textContent = nome;
-  document.getElementById('selected_email').textContent = email;
-  document.getElementById('selected_card').classList.add('show');
-
-  // Esconde campo de busca
-  document.getElementById('field_busca').style.display = 'none';
-  document.getElementById('colab_dropdown').classList.remove('show');
-  document.getElementById('error_colab').classList.remove('show');
-
-  // Habilita botão
-  document.getElementById('btn_entrar').disabled = false;
-}
-
-// ── Limpa seleção ────────────────────────────────────
-document.getElementById('btn_clear').addEventListener('click', function(){
-  colabSelecionado = null;
-  document.getElementById('selected_card').classList.remove('show');
-  document.getElementById('field_busca').style.display = 'block';
-  document.getElementById('colab_search').value = '';
-  document.getElementById('colab_search').focus();
-  document.getElementById('btn_entrar').disabled = true;
-});
-
-// ── Input busca ──────────────────────────────────────
-document.getElementById('colab_search').addEventListener('input', function(){
-  filtrarColabs(this.value);
-});
-document.getElementById('colab_search').addEventListener('keydown', function(e){
-  if(e.key === 'Escape') document.getElementById('colab_dropdown').classList.remove('show');
-});
-document.addEventListener('click', function(e){
-  if(!e.target.closest('#field_busca'))
-    document.getElementById('colab_dropdown').classList.remove('show');
-});
-
-// ── Entrar ───────────────────────────────────────────
-document.getElementById('btn_entrar').addEventListener('click', function(){
-  if(!colabSelecionado){ 
-    document.getElementById('error_colab').classList.add('show');
-    return;
-  }
-  // Salva na sessionStorage e redireciona
-  sessionStorage.setItem('lx_user', JSON.stringify(colabSelecionado));
-  window.location.href = 'index.html';
-});
-
-// ── Init ─────────────────────────────────────────────
-carregarColabs();
 
 // Se já tem sessão, redireciona direto
 var sessao = sessionStorage.getItem('lx_user');
