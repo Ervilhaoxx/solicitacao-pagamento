@@ -440,17 +440,9 @@ html,body{height:100%;font-family:var(--font-body);}
       <h2 class="login-title">Acesse sua conta</h2>
       <p class="login-sub">Entre com seu e-mail corporativo Logcomex para continuar.</p>
 
-      <!-- Botão Google -->
-      <div id="g_id_onload"
-           data-client_id="154125490387-1tgtni5rh3uat61k0lbr3615r3lpntm7.apps.googleusercontent.com"
-           data-context="signin"
-           data-ux_mode="popup"
-           data-callback="handleGoogleLogin"
-           data-auto_prompt="false">
-      </div>
-
+      <!-- Botão Google customizado -->
       <div id="google_btn_custom">
-        <button onclick="triggerGoogleLogin()" class="btn-google">
+        <button onclick="triggerGoogleLogin()" style="width:100%;padding:14px 16px;background:#6613D0;border:none;border-radius:12px;font-size:15px;font-weight:700;color:white;cursor:pointer;font-family:Poppins,sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 200ms;box-shadow:0 4px 20px rgba(102,19,208,0.30);letter-spacing:-0.01em;" onmouseover="this.style.background='#5B11BA'" onmouseout="this.style.background='#6613D0'">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="white" opacity="0.9"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="white" opacity="0.9"/>
