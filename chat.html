@@ -387,12 +387,7 @@ textarea#msg_input::placeholder{color:var(--subtle);}
   <div class="main">
     <div class="topbar">
       <span class="topbar-title" id="topbar_title">Nova solicitação</span>
-      <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="abrirConfig()" title="Configurações" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px;transition:color 150ms,background 150ms;" onmouseover="this.style.background='rgba(226,208,250,0.08)';this.style.color='var(--text)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
       <span class="topbar-badge">Facilities AI</span>
-    </div>
     </div>
 
     <div class="chat-area" id="chat_area">
@@ -924,39 +919,6 @@ function markdownToHtml(txt){
     .replace(/^(.)/,'<p>$1').replace(/(.)$/,'$1</p>');
 }
 </script>
-<!-- Modal Config -->
-<div id="modal_config" style="display:none;position:fixed;inset:0;background:rgba(11,13,25,0.75);z-index:999;align-items:center;justify-content:center;">
-  <div style="background:#161929;border:1px solid rgba(226,208,250,0.15);border-radius:20px;padding:28px;width:100%;max-width:440px;margin:20px;">
-    <h3 style="font-size:16px;font-weight:700;color:#E8E9F3;margin-bottom:6px;">Configurações</h3>
-    <p style="font-size:12px;color:rgba(226,208,250,0.55);margin-bottom:20px;">A API key fica salva no seu browser. Nunca é enviada para servidores externos.</p>
-    <label style="font-size:12px;font-weight:600;color:#E8E9F3;display:block;margin-bottom:6px;">API Key do Claude (Anthropic)</label>
-    <input id="input_claude_key" type="password" placeholder="sk-ant-api03-..." style="width:100%;padding:10px 12px;background:#1e2235;border:1.5px solid rgba(226,208,250,0.15);border-radius:8px;color:#E8E9F3;font-size:13px;font-family:Poppins,sans-serif;outline:none;margin-bottom:16px;" onfocus="this.style.borderColor='#6613D0'" onblur="this.style.borderColor='rgba(226,208,250,0.15)'"/>
-    <div style="display:flex;gap:8px;">
-      <button onclick="salvarConfig()" style="flex:1;padding:11px;background:#6613D0;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;">Salvar</button>
-      <button onclick="fecharConfig()" style="padding:11px 20px;background:#1e2235;color:rgba(226,208,250,0.6);border:1px solid rgba(226,208,250,0.15);border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:Poppins,sans-serif;">Cancelar</button>
-    </div>
-  </div>
-</div>
-<script>
-function abrirConfig(){
-  var key = localStorage.getItem('pague_claude_key')||'';
-  document.getElementById('input_claude_key').value = key;
-  document.getElementById('modal_config').style.display = 'flex';
-}
-function fecharConfig(){
-  document.getElementById('modal_config').style.display = 'none';
-}
-function salvarConfig(){
-  var key = document.getElementById('input_claude_key').value.trim();
-  if(!key){ alert('Cole a API key'); return; }
-  localStorage.setItem('pague_claude_key', key);
-  fecharConfig();
-  alert('✅ API key salva!');
-}
-// Abre config automaticamente se não tiver key
-window.addEventListener('load', function(){
-  if(!localStorage.getItem('pague_claude_key')) abrirConfig();
-});
-</script>
+
 </body>
 </html>
