@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin · Facilities AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Display:wght@600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --lx-deep:#0B0D19;--lx-darkest:#2D085D;--lx-dark:#5B11BA;--lx-pure:#6613D0;
+  --lx-light:#8E44ED;--lx-lightest:#E2D0FA;--lx-orange:#FE8F1C;
+  --lx-neutral-600:#5F616A;--lx-neutral-200:#E0E1EB;--lx-off-white:#F5F6FC;
+  --lx-white:#FFFFFF;--lx-success:#1FAC66;--lx-danger:#C70404;
+  --font-body:'Poppins',sans-serif;--font-display:'Funnel Display',sans-serif;
+  --ease:cubic-bezier(0.2,0.8,0.2,1);
+}
+body{font-family:var(--font-body);background:var(--lx-off-white);color:var(--lx-deep);min-height:100vh;}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+
+/* Sidebar */
+.sidebar{
+  background:var(--lx-darkest);color:var(--lx-lightest);
+  display:flex;flex-direction:column;padding:0;
+  position:sticky;top:0;height:100vh;
+}
+.sidebar-header{padding:24px 20px;border-bottom:1px solid rgba(226,208,250,0.08);}
+.sidebar-header .brand{font-size:13px;font-weight:700;color:white;margin-top:10px;}
+.sidebar-header .brand-sub{font-size:10px;color:rgba(226,208,250,0.45);text-transform:uppercase;letter-spacing:0.1em;}
+
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;margin:2px 8px;
+  border-radius:8px;cursor:pointer;font-size:13px;
+  color:rgba(226,208,250,0.65);border:none;background:none;
+  font-family:var(--font-body);width:calc(100% - 16px);text-align:left;
+  transition:all 150ms;
+}
+.nav-item:hover{background:rgba(226,208,250,0.07);color:rgba(226,208,250,0.9);}
+.nav-item.active{background:rgba(226,208,250,0.12);color:white;font-weight:600;}
+
+.sidebar-footer{
+  margin-top:auto;padding:16px;
+  border-top:1px solid rgba(226,208,250,0.08);
+}
+.back-btn{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:rgba(226,208,250,0.55);
+  text-decoration:none;transition:color 150ms;
+  background:none;border:none;cursor:pointer;font-family:var(--font-body);padding:0;
+}
+.back-btn:hover{color:rgba(226,208,250,0.9);}
+
+/* Main */
+.main{padding:40px;}
+
+.page{display:none;}
+.page.active{display:block;}
+
+/* Header */
+.page-header{margin-bottom:32px;}
+.page-title{font-family:var(--font-display);font-size:24px;font-weight:700;color:var(--lx-deep);letter-spacing:-0.02em;}
+.page-sub{font-size:13px;color:var(--lx-neutral-600);margin-top:4px;}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;}
+.kpi-card{
+  background:var(--lx-white);border:1px solid var(--lx-neutral-200);
+  border-radius:16px;padding:24px;
+  box-shadow:0 1px 3px rgba(11,13,25,0.06);
+}
+.kpi-label{font-size:11px;font-weight:700;color:var(--lx-neutral-600);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+.kpi-value{font-family:var(--font-display);font-size:32px;font-weight:700;color:var(--lx-pure);letter-spacing:-0.02em;}
+.kpi-sub{font-size:12px;color:var(--lx-neutral-600);margin-top:4px;}
+
+/* Table */
+.table-card{background:var(--lx-white);border:1px solid var(--lx-neutral-200);border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(11,13,25,0.06);}
+.table-header{padding:20px 24px;border-bottom:1px solid var(--lx-neutral-200);display:flex;align-items:center;justify-content:space-between;}
+.table-title{font-size:14px;font-weight:700;color:var(--lx-deep);}
+table{width:100%;border-collapse:collapse;}
+th{padding:12px 24px;text-align:left;font-size:11px;font-weight:700;color:var(--lx-neutral-600);text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--lx-neutral-200);}
+td{padding:14px 24px;font-size:13px;color:var(--lx-deep);border-bottom:1px solid var(--lx-off-white);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--lx-off-white);}
+
+/* Config */
+.config-section{margin-bottom:32px;}
+.config-label{font-size:12px;font-weight:700;color:var(--lx-deep);margin-bottom:6px;display:block;}
+.config-sub{font-size:11px;color:var(--lx-neutral-600);margin-bottom:10px;}
+.config-input{
+  width:100%;max-width:480px;padding:10px 14px;
+  border:1.5px solid var(--lx-neutral-200);border-radius:8px;
+  font-size:14px;color:var(--lx-deep);background:var(--lx-white);
+  font-family:var(--font-body);transition:border-color 200ms;
+}
+.config-input:focus{outline:none;border-color:var(--lx-pure);box-shadow:0 0 0 3px rgba(102,19,208,0.08);}
+.config-card{background:var(--lx-white);border:1px solid var(--lx-neutral-200);border-radius:16px;padding:28px;margin-bottom:16px;box-shadow:0 1px 3px rgba(11,13,25,0.06);}
+.config-card h3{font-size:14px;font-weight:700;color:var(--lx-deep);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--lx-neutral-200);}
+
+/* Buttons */
+.btn-primary{
+  padding:10px 20px;background:var(--lx-pure);color:white;border:none;
+  border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:var(--font-body);transition:background 200ms;
+}
+.btn-primary:hover{background:var(--lx-dark);}
+.btn-danger{background:var(--lx-danger);}
+.btn-danger:hover{background:#a00303;}
+
+/* Badge */
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;}
+.badge-green{background:rgba(31,172,102,0.12);color:#1FAC66;}
+.badge-orange{background:rgba(254,143,28,0.12);color:var(--lx-orange);}
+.badge-purple{background:rgba(102,19,208,0.10);color:var(--lx-pure);}
+
+/* Bar chart simples */
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.bar-label{font-size:12px;color:var(--lx-neutral-600);width:160px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;height:8px;background:var(--lx-off-white);border-radius:999px;overflow:hidden;}
+.bar-fill{height:100%;background:var(--lx-pure);border-radius:999px;transition:width 600ms var(--ease);}
+.bar-val{font-size:12px;font-weight:600;color:var(--lx-deep);width:40px;text-align:right;}
+
+/* Toast */
+.toast{
+  position:fixed;top:20px;right:20px;
+  padding:12px 18px;border-radius:10px;
+  font-size:13px;font-weight:600;color:white;
+  z-index:999;display:none;
+  box-shadow:0 8px 24px rgba(11,13,25,0.15);
+}
+.toast.show{display:block;}
+.toast.success{background:var(--lx-success);}
+.toast.error{background:var(--lx-danger);}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <svg width="100" height="15" viewBox="0 0 197 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M170.124 20.0846H167.091V23.1403H170.124V20.0846Z" fill="white"/><path d="M191.659 23.1386V7.58946H194.71V21.0058C194.71 22.1838 193.755 23.1386 192.577 23.1386H191.659Z" fill="white"/><path d="M193.263 0.0574C193.429 1.6307 194.663 2.8788 196.224 3.0414C196.3 3.0509 196.3 3.1657 196.224 3.1705C194.663 3.3379 193.424 4.5812 193.263 6.1545C193.254 6.231 193.14 6.231 193.135 6.1545C192.969 4.5812 191.735 3.3331 190.174 3.1705C190.098 3.1609 190.098 3.0462 190.174 3.0414C191.735 2.874 192.974 1.6307 193.135 0.0574C193.144 -0.0191 193.258 -0.0191 193.263 0.0574Z" fill="white"/><path d="M86.4294 18.6307C86.2683 18.8051 86.0983 18.9677 85.9061 19.1185C85.0768 19.7719 84.0671 20.1015 82.9097 20.1015C81.5378 20.1015 80.3922 19.6551 79.5052 18.7696C78.6168 17.8886 78.1674 16.7488 78.1674 15.3829C78.1674 14.017 78.6182 12.8817 79.5052 11.9962C80.3951 11.1107 81.5349 10.6643 82.9097 10.6643C84.0671 10.6643 85.0768 10.9954 85.9061 11.6473C86.0997 11.7981 86.2668 11.9667 86.4279 12.1411L88.3526 9.65908C86.7221 8.2503 84.9585 7.62499 82.9082 7.62499C80.642 7.62499 78.7469 8.36856 77.273 9.83204C75.78 11.2778 75.0231 13.1434 75.0231 15.3814C75.0231 17.6195 75.7785 19.4851 77.2716 20.9309C78.7454 22.3958 80.6405 23.1379 82.9067 23.1379C84.9541 23.1379 86.7206 22.517 88.1531 21.2871L86.4294 18.6307Z" fill="white"/><path d="M34.6369 17.3919V0.96096H31.4808V17.3786C31.4808 20.5613 34.0752 23.1423 37.2727 23.1423H38.0798V20.0025H37.2549C35.8047 20.0025 34.6325 18.8347 34.6325 17.3948H34.6369V17.3919Z" fill="white"/></svg>
+      <div class="brand">Facilities AI</div>
+      <div class="brand-sub">Painel de Administração</div>
+    </div>
+
+    <div style="padding:8px 0;flex:1;">
+      <div style="padding:8px 8px 4px;font-size:10px;font-weight:700;color:rgba(226,208,250,0.40);text-transform:uppercase;letter-spacing:0.12em;padding-left:16px;">Menu</div>
+      <button class="nav-item active" onclick="showPage('dashboard')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="showPage('usuarios')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuários
+      </button>
+      <button class="nav-item" onclick="showPage('consumo')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Consumo de IA
+      </button>
+      <button class="nav-item" onclick="showPage('config')">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configurações
+      </button>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="back-btn" onclick="window.location.href='chat.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar ao Chat
+      </button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page_dashboard">
+      <div class="page-header">
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Visão geral do uso da Facilities AI</div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Conversas hoje</div>
+          <div class="kpi-value" id="kpi_hoje">—</div>
+          <div class="kpi-sub">Total de sessões</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Cards criados</div>
+          <div class="kpi-value" id="kpi_cards">—</div>
+          <div class="kpi-sub">Pipefy abertos</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Usuários ativos</div>
+          <div class="kpi-value" id="kpi_users">—</div>
+          <div class="kpi-sub">Logaram hoje</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tokens consumidos</div>
+          <div class="kpi-value" id="kpi_tokens">—</div>
+          <div class="kpi-sub">Estimativa mensal</div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Atividade recente</div>
+        </div>
+        <table>
+          <thead><tr><th>Usuário</th><th>Ação</th><th>Fornecedor</th><th>Horário</th><th>Status</th></tr></thead>
+          <tbody id="tb_atividade">
+            <tr><td colspan="5" style="text-align:center;color:#999;padding:32px;">Nenhuma atividade registrada ainda</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Usuários -->
+    <div class="page" id="page_usuarios">
+      <div class="page-header">
+        <div class="page-title">Usuários</div>
+        <div class="page-sub">Colaboradores com acesso ao Facilities AI</div>
+      </div>
+      <div class="table-card">
+        <div class="table-header">
+          <div class="table-title">Todos os usuários</div>
+          <span class="badge badge-purple" id="badge_total_users">0 usuários</span>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Conversas</th><th>Último acesso</th><th>Status</th></tr></thead>
+          <tbody id="tb_usuarios">
+            <tr><td colspan="5" style="text-align:center;color:#999;padding:32px;">Nenhum usuário registrado ainda</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Consumo -->
+    <div class="page" id="page_consumo">
+      <div class="page-header">
+        <div class="page-title">Consumo de IA</div>
+        <div class="page-sub">Monitoramento de uso da API Claude</div>
+      </div>
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="kpi-card">
+          <div class="kpi-label">Tokens este mês</div>
+          <div class="kpi-value" id="kpi_tokens_mes">—</div>
+          <div class="kpi-sub">Input + Output</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Custo estimado</div>
+          <div class="kpi-value" id="kpi_custo">—</div>
+          <div class="kpi-sub">USD este mês</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Requisições</div>
+          <div class="kpi-value" id="kpi_reqs">—</div>
+          <div class="kpi-sub">Chamadas à API</div>
+        </div>
+      </div>
+      <div class="table-card" style="padding:28px;">
+        <div class="table-title" style="margin-bottom:20px;">Consumo por usuário</div>
+        <div id="consumo_bars">
+          <div style="text-align:center;color:#999;padding:20px;">Nenhum dado de consumo ainda</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Configurações -->
+    <div class="page" id="page_config">
+      <div class="page-header">
+        <div class="page-title">Configurações</div>
+        <div class="page-sub">Chaves de API e preferências do sistema</div>
+      </div>
+
+      <div class="config-card">
+        <h3>🔑 API Key — Claude (Anthropic)</h3>
+        <div class="config-section">
+          <label class="config-label">Chave de API</label>
+          <div class="config-sub">Esta chave é usada por todos os usuários. Fica salva no Vercel como variável de ambiente.</div>
+          <input type="password" class="config-input" id="input_api_key" placeholder="sk-ant-api03-..."/>
+          <div style="margin-top:10px;display:flex;gap:8px;">
+            <button class="btn-primary" onclick="testarApiKey()">Testar conexão</button>
+            <div id="api_status" style="display:none;align-items:center;gap:6px;font-size:13px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h3>🔗 Pipefy</h3>
+        <div class="config-section">
+          <label class="config-label">Token de acesso</label>
+          <div class="config-sub">Token usado para criar cards no Pipefy.</div>
+          <input type="password" class="config-input" id="input_pipefy_token" placeholder="eyJhbGci..."/>
+        </div>
+        <div class="config-section">
+          <label class="config-label">ID do Pipe (produção)</label>
+          <div class="config-sub">Pipe onde os cards serão criados em produção.</div>
+          <input type="text" class="config-input" id="input_pipe_id" placeholder="302699293"/>
+        </div>
+        <div class="config-section">
+          <label class="config-label">ID do Pipe (testes)</label>
+          <div class="config-sub">Pipe usado durante testes e desenvolvimento.</div>
+          <input type="text" class="config-input" id="input_pipe_teste" placeholder="307088005"/>
+        </div>
+        <div style="margin-top:4px;">
+          <button class="btn-primary" onclick="salvarConfig()">Salvar configurações</button>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h3>⚠️ Zona de risco</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn-primary btn-danger" onclick="limparDados()">Limpar todos os dados locais</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Proteção admin ─────────────────────────────────────
+(function(){
+  var u = sessionStorage.getItem('lx_user');
+  if(!u){ window.location.href='login.html'; return; }
+  try{
+    var user = JSON.parse(u);
+    var admins = ['joao.faria@logcomex.com'];
+    if(!admins.includes(user.email)){
+      alert('Acesso restrito ao administrador.');
+      window.location.href='chat.html';
+    }
+  }catch(e){ window.location.href='login.html'; }
+})();
+
+// ── Nav ────────────────────────────────────────────────
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  document.getElementById('page_'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(id==='dashboard') carregarDashboard();
+  if(id==='usuarios') carregarUsuarios();
+  if(id==='consumo') carregarConsumo();
+  if(id==='config') carregarConfig();
+}
+
+// ── Toast ──────────────────────────────────────────────
+function showToast(msg, tipo){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (tipo||'success');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+// ── Dashboard ──────────────────────────────────────────
+function carregarDashboard(){
+  var stats = JSON.parse(localStorage.getItem('pague_stats') || '{}');
+  var conversas = JSON.parse(localStorage.getItem('pague_conversas') || '[]');
+  var consumo = JSON.parse(localStorage.getItem('pague_consumo') || '{}');
+
+  document.getElementById('kpi_hoje').textContent = stats.conversas_hoje || '0';
+  document.getElementById('kpi_cards').textContent = stats.cards_criados || '0';
+  document.getElementById('kpi_users').textContent = stats.usuarios_ativos || '1';
+
+  var totalTokens = Object.values(consumo).reduce(function(a,b){ return a+(b.tokens||0); }, 0);
+  document.getElementById('kpi_tokens').textContent = totalTokens > 1000 ? (totalTokens/1000).toFixed(1)+'K' : totalTokens||'0';
+
+  // Atividade recente
+  var tb = document.getElementById('tb_atividade');
+  var atividade = JSON.parse(localStorage.getItem('pague_atividade') || '[]');
+  if(atividade.length === 0){
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:32px;">Nenhuma atividade registrada ainda</td></tr>';
+    return;
+  }
+  tb.innerHTML = atividade.slice(-10).reverse().map(function(a){
+    return '<tr><td>'+escH(a.user||'—')+'</td><td>'+escH(a.acao||'—')+'</td><td>'+escH(a.fornecedor||'—')+'</td><td>'+escH(a.hora||'—')+'</td><td><span class="badge badge-'+(a.ok?'green':'orange')+'">'+( a.ok?'Sucesso':'Pendente')+'</span></td></tr>';
+  }).join('');
+}
+
+// ── Usuários ───────────────────────────────────────────
+function carregarUsuarios(){
+  var usuarios = JSON.parse(localStorage.getItem('pague_usuarios') || '[]');
+  var tb = document.getElementById('tb_usuarios');
+  document.getElementById('badge_total_users').textContent = usuarios.length + ' usuário'+(usuarios.length!==1?'s':'');
+  if(usuarios.length === 0){
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;padding:32px;">Nenhum usuário registrado. Os usuários aparecem após o primeiro login.</td></tr>';
+    return;
+  }
+  tb.innerHTML = usuarios.map(function(u){
+    return '<tr><td style="font-weight:500">'+escH(u.nome)+'</td><td>'+escH(u.email)+'</td><td>'+( u.conversas||0)+'</td><td>'+escH(u.ultimo_acesso||'—')+'</td><td><span class="badge badge-green">Ativo</span></td></tr>';
+  }).join('');
+}
+
+// ── Consumo ────────────────────────────────────────────
+function carregarConsumo(){
+  var consumo = JSON.parse(localStorage.getItem('pague_consumo') || '{}');
+  var totalTokens = Object.values(consumo).reduce(function(a,b){ return a+(b.tokens||0); }, 0);
+  var totalReqs = Object.values(consumo).reduce(function(a,b){ return a+(b.reqs||0); }, 0);
+  var custo = (totalTokens * 0.000003).toFixed(4); // ~$3/1M tokens sonnet
+
+  document.getElementById('kpi_tokens_mes').textContent = totalTokens > 1000 ? (totalTokens/1000).toFixed(1)+'K' : totalTokens||'0';
+  document.getElementById('kpi_custo').textContent = '$'+custo;
+  document.getElementById('kpi_reqs').textContent = totalReqs||'0';
+
+  var bars = document.getElementById('consumo_bars');
+  var entries = Object.entries(consumo);
+  if(entries.length === 0){
+    bars.innerHTML = '<div style="text-align:center;color:#999;padding:20px;">Nenhum dado de consumo ainda</div>';
+    return;
+  }
+  var maxTokens = Math.max.apply(null, entries.map(function(e){ return e[1].tokens||0; }));
+  bars.innerHTML = entries.sort(function(a,b){ return (b[1].tokens||0)-(a[1].tokens||0); }).map(function(e){
+    var pct = maxTokens > 0 ? Math.round((e[1].tokens||0)/maxTokens*100) : 0;
+    return '<div class="bar-row"><div class="bar-label">'+escH(e[0].split('@')[0])+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="bar-val">'+(e[1].tokens>1000?(e[1].tokens/1000).toFixed(1)+'K':(e[1].tokens||0))+'</div></div>';
+  }).join('');
+}
+
+// ── Config ─────────────────────────────────────────────
+function carregarConfig(){
+  var cfg = JSON.parse(localStorage.getItem('pague_config') || '{}');
+  if(cfg.api_key) document.getElementById('input_api_key').value = cfg.api_key;
+  if(cfg.pipefy_token) document.getElementById('input_pipefy_token').value = cfg.pipefy_token;
+  if(cfg.pipe_id) document.getElementById('input_pipe_id').value = cfg.pipe_id;
+  if(cfg.pipe_teste) document.getElementById('input_pipe_teste').value = cfg.pipe_teste;
+}
+
+function salvarConfig(){
+  var cfg = {
+    api_key: document.getElementById('input_api_key').value.trim(),
+    pipefy_token: document.getElementById('input_pipefy_token').value.trim(),
+    pipe_id: document.getElementById('input_pipe_id').value.trim(),
+    pipe_teste: document.getElementById('input_pipe_teste').value.trim(),
+  };
+  localStorage.setItem('pague_config', JSON.stringify(cfg));
+  showToast('✅ Configurações salvas!', 'success');
+}
+
+async function testarApiKey(){
+  var key = document.getElementById('input_api_key').value.trim();
+  if(!key){ showToast('Cole a API key primeiro', 'error'); return; }
+  var status = document.getElementById('api_status');
+  status.style.display = 'flex';
+  status.innerHTML = '<div style="width:14px;height:14px;border:2px solid #E2D0FA;border-top-color:#6613D0;border-radius:50%;animation:spin 0.8s linear infinite"></div> Testando...';
+  try{
+    var r = await fetch('/api/claude', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:10,messages:[{role:'user',content:'hi'}]})
+    });
+    var d = await r.json();
+    if(d.content) status.innerHTML = '<span style="color:#1FAC66;font-weight:600;">✅ Conexão OK</span>';
+    else status.innerHTML = '<span style="color:#C70404;font-weight:600;">❌ '+( d.error?.message||'Erro')+'</span>';
+  }catch(e){
+    status.innerHTML = '<span style="color:#C70404;font-weight:600;">❌ '+e.message+'</span>';
+  }
+}
+
+function limparDados(){
+  if(!confirm('Isso vai apagar TODOS os dados locais (conversas, histórico, configurações). Tem certeza?')) return;
+  var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith('pague_'); });
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  showToast('Dados limpos!', 'success');
+  carregarDashboard();
+}
+
+function escH(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Init ───────────────────────────────────────────────
+carregarDashboard();
+
+// Adiciona CSS do spinner
+var s = document.createElement('style');
+s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(s);
+</script>
+</body>
+</html>
