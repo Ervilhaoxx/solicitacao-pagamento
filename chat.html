@@ -145,8 +145,11 @@ html,body{height:100%;font-family:var(--font-body);background:var(--lx-bg);color
   display:flex;flex-direction:column;
   width:calc(100vw - 248px);
   height:100vh;
+  height:100dvh;
   overflow:hidden;
   background:var(--lx-white);
+  position:fixed;
+  top:0;right:0;
 }
 
 /* ── TOPBAR ───────────────────────────────────────────── */
@@ -177,6 +180,8 @@ html,body{height:100%;font-family:var(--font-body);background:var(--lx-bg);color
   overflow-y:auto;
   scroll-behavior:smooth;
   min-height:0;
+  display:flex;
+  flex-direction:column;
 }
 .chat-area::-webkit-scrollbar{width:6px;}
 .chat-area::-webkit-scrollbar-track{background:transparent;}
@@ -184,6 +189,8 @@ html,body{height:100%;font-family:var(--font-body);background:var(--lx-bg);color
 .chat-inner{
   max-width:720px;margin:0 auto;
   padding:40px 32px 24px;
+  flex:1;
+  width:100%;
 }
 
 /* ── WELCOME ──────────────────────────────────────────── */
