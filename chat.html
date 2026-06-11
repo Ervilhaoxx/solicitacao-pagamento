@@ -768,16 +768,9 @@ function buildMessages(pdfsB64, texto){
 
 // ── Claude API ────────────────────────────────────────────────────────────
 async function callClaude(systemPrompt, msgs){
-  var CLAUDE_KEY = localStorage.getItem('pague_claude_key')||'';
-  if(!CLAUDE_KEY){ throw new Error('Configure a API key do Claude nas configurações (ícone ⚙️)'); }
-  var resp = await fetch('https://api.anthropic.com/v1/messages',{
+  var resp = await fetch('/api/claude',{
     method:'POST',
-    headers:{
-      'Content-Type':'application/json',
-      'x-api-key': CLAUDE_KEY,
-      'anthropic-version':'2023-06-01',
-      'anthropic-dangerous-direct-browser-access':'true'
-    },
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
       model:'claude-sonnet-4-20250514',
       max_tokens:2000,
